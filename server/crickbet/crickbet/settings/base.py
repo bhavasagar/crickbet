@@ -171,6 +171,6 @@ TEMPLATES = [
     },
 ]
 
-STATIC_ROOT = '/home/circkbet/crickbet/server/crickbet/static'
+STATIC_ROOT = '/home/circkbet/crickbet/server/crickbet/static'  
 
 print(STATIC_ROOT)
