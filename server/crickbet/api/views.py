@@ -1,8 +1,3 @@
-from ast import match_case
-from logging import exception
-from multiprocessing import context
-from platform import machine
-from urllib import response
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.conf import Settings, settings

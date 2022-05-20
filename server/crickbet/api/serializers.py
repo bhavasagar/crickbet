@@ -1,6 +1,3 @@
-from dataclasses import fields
-from pyexpat import model
-from statistics import mode
 from rest_framework import serializers, exceptions
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
