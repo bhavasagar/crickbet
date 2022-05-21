@@ -10,13 +10,13 @@ DATABASES = {
     }
 }
 
-if not DEBUG:
+if config('POSTGRESS') == 'TRUE':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'crickbet',
-            'USER': 'crickbetuser',
-            'PASSWORD': 'crickbet_password',
+            'NAME': config('DATABASE_NAME'),
+            'USER': config('DATABASE_USER'),
+            'PASSWORD': config('DATABASE_PASSWORD'),
             'HOST': 'localhost',
             'PORT': '',
         }

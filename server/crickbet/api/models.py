@@ -282,3 +282,12 @@ def userprofile_receiver(sender, instance, created, *args, **kwargs):
     if created:
         userprofile = UserProfile.objects.create(user=instance)
         account = Account.objects.create(user=instance)
+
+@receiver(post_save, sender=OverToOverRatio)        
+def userprofile_receiver(sender, instance, created, *args, **kwargs):
+    if created:
+        for ball_num in range(int(instance.over_num), int(instance.over_num) + 0.6, 0.1):
+            ratio = Ratio.objects.create(10,13)
+            if not BallToBallRatio.objects.filter(match=instance.match, ball_num=ball_num).exists():
+                BallToBallRatio.objects.create(match=instance.match, ratio=ratio, ball_num=ball_num, expected_runs = str(random.randint(0,6)))
+        

@@ -84,7 +84,7 @@ class FetchMatchesList:
         score_c.save()      
 
     def _save_score(self, db_match, score):
-        from .models import OverToOverBet, BallToBallBet    
+        from .models import OverToOverBet, BallToBallBet, BallToBallRatio, OverToOverRatio
         print(score[1])    
         batting_team = self.teams[score[1]["team_id"]]["name"]
         batting_team_id = score[1]["team_id"]
@@ -98,6 +98,8 @@ class FetchMatchesList:
         print(batting_team)
         over_num = int(score[item_num]['overs'])               
         if over_num > 0:
+            if OverToOverRatio.objects.filter(match=db_match, over_num=over_num).exists():
+                OverToOverRatio.objects.create(match=db_match, over_num=over_num)
             over_previous_bets = OverToOverBet.objects.filter(match=db_match, over_num__lte=over_num, paid=False)
             all_b2b_data = self._request("GET",self.ball2ballscore_url)            
             # Filter current match b2b data           
@@ -117,14 +119,22 @@ class FetchMatchesList:
                     return data[-1]['score']['runs']
         
                 for bet in over_previous_bets:                    
-                    actual_score = get_over_score(int(bet.over_num))
+                    o2o_ratio = OverToOverRatio.objects.get(match=db_match, over_num=bet.over_num)  
+                    expected_runs = o2o_ratio.expected_runs
+                    actual_score = "YES"                    
+                    if int(get_ball_score(bet.ball_num)) < expected_runs:
+                        actual_score = "NO"
                     self._pass_bets([bet], actual_score)
                 
-                ball_num = get_ball_num(score[item_num]['overs'])
+                ball_num = get_ball_num(score[item_num]['overs'])                
                 ball_previous_bets = BallToBallBet.objects.filter(match=db_match, ball_num__lte=ball_num, paid=False)
                 for bet in ball_previous_bets:
-                    actual_score = int(get_ball_score(bet.ball_num))                    
-                    self._pass_bets([bet], actual_score)
+                    b2b_ratio = BallToBallRatio.objects.get(match=db_match, ball_num=score[item_num]['overs'])
+                    expected_runs = b2b_ratio.expected_runs
+                    actual_score = "YES"                    
+                    if int(get_ball_score(bet.ball_num)) < expected_runs:
+                        actual_score = "NO"
+                    self._pass_bets([bet], actual_score)                
 
         self._set_score(score, db_match, batting_team, item_no = 1)        
 

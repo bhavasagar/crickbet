@@ -14,8 +14,8 @@ const useStore = defineStore({
   },
   actions: {
     async refreshTokens() {
-      const credentials = JSON.parse(localStorage.getItem('credentials'));
-      const refresh_token = credentials.refresh_token
+      const credentials = JSON.parse(localStorage.getItem('credentials') || '{}');
+      const refresh_token = credentials?.refresh_token
       const url = `${this.server}/refresh/`;
       console.log(credentials)
       const options = {
@@ -54,7 +54,7 @@ const useStore = defineStore({
       return data;
     },
     async securedRequest(url, method) {
-      const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
+      const access_token = JSON.parse(localStorage.getItem("credentials") || '{}')?.access_token;
       const options = {
         method: method,
         headers: new Headers({"Authorization": `Bearer ${access_token}`})

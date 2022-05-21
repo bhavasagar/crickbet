@@ -14,11 +14,17 @@ const router = createRouter({
       path: "/",
       name: "home",
       component: MatchesView,
+      meta: {
+        requiresAuth: true
+      }
     },
     {
       path: "/match/:matchid",
       name: "match_detail",
       component: MatchDetailView,
+      meta: {
+        requiresAuth: true
+      }
     },
     {
       path: "/login",
@@ -50,5 +56,28 @@ const router = createRouter({
     // },
   ],
 });
+
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // this route requires auth, check if logged in
+    // if not, redirect to login page.
+    console.log("In router")
+    let login_state = localStorage.getItem('login')
+    if (!login_state) {
+      login_state = 'login_requiured';
+    }
+    else {
+      login_state = JSON.parse(login_state).state;
+    }
+    if (login_state == 'login_required' || login_state == 0) {
+      next({ name: 'login' })
+    } else {
+      next() 
+    }
+  } else {
+    next() 
+  }
+})
 
 export default router;

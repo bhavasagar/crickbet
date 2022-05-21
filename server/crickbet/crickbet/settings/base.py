@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 import os
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,17 +22,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-rtfi#+a6-#x)jqh5^+in9b9_)5t+(lz_@d6b(nip7#mz=ioc0l'
+SECRET_KEY = config("SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True    
 BROWSE = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'startgain.in', 'api.startgain.in']
 
 CORS_ALLOWED_ORIGINS = [    
     "http://127.0.0.1:3000",
     "http://localhost:3000",
+    "http://startgain.in",
+    "https://startgain.in",
 ]
 
 CORS_ALLOW_METHODS = [

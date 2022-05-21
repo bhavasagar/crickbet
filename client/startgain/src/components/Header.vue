@@ -85,9 +85,9 @@ const items = [
                 </router-link>
             </div>
             <div class="menu--item">
-                <router-link to="https://colortrade.startgain.in/play/">
+                <a to="https://colortrade.startgain.in/play/">
                     Color-Trade
-                </router-link>
+                </a>
             </div>
             <div class="menu--item">
                 <router-link to="/">

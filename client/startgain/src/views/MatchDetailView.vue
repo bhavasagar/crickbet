@@ -195,8 +195,8 @@ const handleBetSubmission = () => {
                         </span>
                     </div>
                     <div class="team-score font-bold">
-                        <span class="font-bold" v-if="store.match[store.match.team_a]">
-                            {{store.match[store.match.team_a].runs}}-{{store.match[store.match.team_a].wickets}} ({{store.match[store.match.team_a].overs}})
+                        <span class="font-bold" v-if="store.match[store.match.team_b]">
+                            {{store.match[store.match.team_b].runs}}-{{store.match[store.match.team_b].wickets}} ({{store.match[store.match.team_b].overs}})
                         </span>
                         <span class="font-bold" v-else>
                             N/A
