@@ -22,11 +22,11 @@ urlpatterns = [
 
     # API endpoints related to matches
     path('current-matches/', CurrentMatchesAPI.as_view(), name='current_matches'),    
-    path('match/<int:match_id>/', MatcheDetailAPI.as_view(), name='current_matches'),    
+    path('match/<int:match_id>/', MatcheDetailAPI.as_view(), name='match_detail'),    
 
     # API endpoints related to payments
     path('recharge/', start_payment, name="start_payment"),
     path('handle-recharge/', handle_payment, name="handle_payment"),
-    path('pending-balance/', get_user_pending_balance, name="pending_balance"),
+    # path('pending-balance/', get_user_pending_balance, name="pending_balance"),
 ] + bet_api
 

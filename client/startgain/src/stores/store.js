@@ -42,9 +42,10 @@ const useStore = defineStore({
 
       if (!resp.ok) {
         if (data.code == 'token_not_valid') {
-          let resp = await this.refreshTokens();
-          if (resp.ok) {
-            this.request(url, options);
+          let refrsh_resp = await this.refreshTokens();
+          console.log(url, refrsh_resp);
+          if (refrsh_resp.ok && data.code != 'token_not_valid') {
+            this.getCurrentMatches(url, options);            
           }          
         }
       }
@@ -58,8 +59,6 @@ const useStore = defineStore({
         method: method,
         headers: new Headers({"Authorization": `Bearer ${access_token}`})
       };            
-      let headers = new Headers({"Authorization": `Bearer ${access_token}`})
-      console.log(options, headers);
       const data = await this.request(url, options);      
       return data
     },

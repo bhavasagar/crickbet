@@ -1,7 +1,7 @@
 <script setup>
 import Header from "@/components/Header.vue";
 import backgroundImage from "@/assets/ground.jpg"
-import { onMounted, onBeforeMount, onUnmounted, ref, reactive } from "@vue/runtime-core";
+import { onMounted, onBeforeMount, onUnmounted, ref, reactive, onBeforeUnmount } from "@vue/runtime-core";
 import userStore from "@/stores/store.js";
 import { useRoute } from "vue-router";
 
@@ -15,40 +15,42 @@ const bet_details = reactive({
     ratio_invested: 1,
     type: null,
     over_num: null,
-    ball_num: null
+    ball_num: null,
+    bookmaker_id: null
 })
 
 onBeforeMount(() => {
     clearInterval(fetch_matches);
     fetch_matches = setInterval(() => {
         store.getMatchDetail(route.params.matchid);
-    }, 6*1000);
-    if (!store.user) {        
-        store.getUserDetails();        
-    }
+    }, 6*1000);    
 });
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
     clearInterval(fetch_matches);
 });
 
-const handleClick = (invested_on, ratio_invested, type, over_num=null, ball_num=null) => {
+const handleClick = (invested_on, ratio_invested, type, over_num=null, ball_num=null, bookmaker_id=null) => {
+    console.log(invested_on, ratio_invested, type, over_num, ball_num, bookmaker_id)
     bet_details.invested_on = invested_on;
     bet_details.ratio_invested = ratio_invested;
     bet_details.type = type;
     bet_details.over_num = over_num;
     bet_details.ball_num = ball_num;
+    bet_details.bookmaker_id = bookmaker_id;
     placebet.value = true;
-    console.log(true)
+    console.log(ratio_invested)
 }
 
 const handleBetSubmission = () => {
-    if (type=='toss') {
+    console.log(bet_details)
+    if (bet_details.type=='toss') {
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
+        console.log(access_token);
         const url = `${store.server}/tossbet/`;
         const options = {
             method: "POST",
-            headers: new Header({'Authorization': `Bearer ${access_token}`}),
+            headers: new Headers({"Content-Type": "application/json", 'Authorization': `Bearer ${access_token}`}),
             body: JSON.stringify({
                                 "user": store.user.id,
                                 "match": store.match.id,
@@ -58,6 +60,96 @@ const handleBetSubmission = () => {
                                 })
         }
         const data = store.request(url, options)
+        console.log(data)
+        if (data.id) {
+            console.log("success");
+        }
+    }
+    else if (bet_details.type=='match') {
+        const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
+        console.log(access_token);
+        const url = `${store.server}/matchbet/`;
+        const options = {
+            method: "POST",
+            headers: new Headers({"Content-Type": "application/json", 'Authorization': `Bearer ${access_token}`}),
+            body: JSON.stringify({
+                                "user": store.user.id,
+                                "match": store.match.id,
+                                "amount_invested": bet_details.bet_amount,
+                                "invested_on": bet_details.invested_on,
+                                "ratio_invested": bet_details.ratio_invested
+                                })
+        }
+        const data = store.request(url, options)
+        console.log(data)
+        if (data.id) {
+            console.log("success");
+        }
+    }
+    else if (bet_details.type=='over') {
+        const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
+        console.log(access_token);
+        const url = `${store.server}/overtooverbet/`;
+        const options = {
+            method: "POST",
+            headers: new Headers({"Content-Type": "application/json", 'Authorization': `Bearer ${access_token}`}),
+            body: JSON.stringify({
+                                "user": store.user.id,
+                                "match": store.match.id,
+                                "amount_invested": bet_details.bet_amount,
+                                "invested_on": bet_details.invested_on,
+                                "ratio_invested": bet_details.ratio_invested,
+                                "over_num": bet_details.over_num,
+                                "team": store.match.batting_team
+                                })
+        }
+        const data = store.request(url, options)
+        console.log(data)
+        if (data.id) {
+            console.log("success");
+        }
+    }    
+    else if (bet_details.type=='ball') {
+        const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
+        console.log(access_token);
+        const url = `${store.server}/balltoballbet/`;
+        const options = {
+            method: "POST",
+            headers: new Headers({"Content-Type": "application/json", 'Authorization': `Bearer ${access_token}`}),
+            body: JSON.stringify({
+                                "user": store.user.id,
+                                "match": store.match.id,
+                                "amount_invested": bet_details.bet_amount,
+                                "invested_on": bet_details.invested_on,
+                                "ratio_invested": bet_details.ratio_invested,
+                                "ball_num": bet_details.ball_num,
+                                "team": store.match.batting_team
+                                })
+        }
+        const data = store.request(url, options)
+        console.log(data)
+        if (data.id) {
+            console.log("success");
+        }
+    }
+    else if (bet_details.type=='bookmaker') {
+        const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
+        console.log(access_token);
+        const url = `${store.server}/bookmakerbet/`;
+        const options = {
+            method: "POST",
+            headers: new Headers({"Content-Type": "application/json", 'Authorization': `Bearer ${access_token}`}),
+            body: JSON.stringify({
+                                "user": store.user.id,
+                                "match": store.match.id,
+                                "amount_invested": bet_details.bet_amount,
+                                "invested_on": bet_details.invested_on,
+                                "ratio_invested": bet_details.ratio_invested,  
+                                "bookmaker_id": bet_details.bookmaker_id                              
+                                })
+        }
+        const data = store.request(url, options)
+        console.log(data)
         if (data.id) {
             console.log("success");
         }
@@ -116,7 +208,7 @@ const handleBetSubmission = () => {
             <Dialog class="p-dialog" header="INVEST" :key="header" v-model:visible="placebet" >
                 <div class="bet--details flex flex-row justify-content-between p-2 mx-1 my-3 ">
                     <span class="team--name">{{bet_details.invested_on}}</span>
-                    <span class="ratio--bet">{{bet_details.bet_ratio}}</span>
+                    <span class="ratio--bet">{{bet_details.ratio_invested}}</span>
                 </div>                
                 <form @submit.prevent="handleBetSubmission" class="amount flex flex-row justify-content-between p-2 mx-1 my-3 align-content-center" >
                     <InputNumber style="height: 2.6rem" v-model="bet_details.bet_amount" />
@@ -271,7 +363,7 @@ const handleBetSubmission = () => {
                 </div>                           
                 
                 
-                <div class="match--bet flex flex-column lg:my-0 md:my-0 sm:my-2 md:mx-2 lg:mx-2" id="over" v-if="store.match.over_to_over_ratios.length > 0" >
+                <div class="match--bet flex flex-column lg:my-0 md:my-0 my-2 md:mx-2 lg:mx-2" id="over" v-if="store.match.over_to_over_ratios.length > 0" >
                     <div class="title--bet py-1 px-3 flex flex-row align-items-center justify-content-between">
                         <span>OVER TO OVER</span>
                         <span class="pi pi-info-circle mr-0 "></span>
@@ -290,8 +382,8 @@ const handleBetSubmission = () => {
                             </div>
                         </div>
                         
-                        <span v-for="over in store.match.over_to_over_ratios" :key="over.id">
-                            <div class="flex flex-row" v-if="over.over_num > store.match" >
+                        <span v-for="over in store.match.over_to_over_ratios" :key="over.id" >
+                            <div class="flex flex-row" v-if=" parseFloat(store.match.current_over)+3 < parseFloat(over.over_num)" >
                                 <div class="team--name py-2 px-1 span-2-col align-self-center flex flex-column">
                                     <span>
                                         Over {{over.over_num}}
@@ -301,10 +393,10 @@ const handleBetSubmission = () => {
                                         <!-- {{expected_runs}} -->
                                     </span>
                                 </div>
-                                <div class="ratio-bet--value py-2 back-bet align-self-strech">
+                                <div class="ratio-bet--value py-2 back-bet align-self-strech" @click="handleClick('YES', over.ratio.ratio_a, 'over', over_num=over.over_num)" >
                                     {{over.ratio.ratio_a}}
                                 </div>
-                                <div class="ratio-bet--value py-2 lay-bet align-self-strech">
+                                <div class="ratio-bet--value py-2 lay-bet align-self-strech" @click="handleClick('NO', over.ratio.ratio_b, 'over', over_num=over.over_num)" >
                                     {{over.ratio.ratio_b}}
                                 </div>
                             </div>                    
@@ -330,23 +422,24 @@ const handleBetSubmission = () => {
                                 NO  
                             </div>
                         </div>
-                        
-                        <div class="flex flex-row" v-for="num in 6" :key="num">
-                            <div class="team--name py-2 px-1 span-2-col align-self-center flex flex-column">
-                                <span>
-                                    Ball 3.{{num+1}}
-                                </span>
-                                <span style="padding: 0; margin: 0; font-size: 0.8rem; font-weight: 400">
-                                    runs: x
-                                </span>
+                        <span v-for="ball_ratio in store.match.ball2ball_ratios" :key="ball_ratio.id">
+                            <div class="flex flex-row" v-if=" parseFloat(store.match.current_over)+3 < parseFloat(ball_ratio.ball_num)" >
+                                <div class="team--name py-2 px-1 span-2-col align-self-center flex flex-column">
+                                    <span>
+                                        Ball {{ball_ratio.ball_num}}
+                                    </span>
+                                    <span style="padding: 0; margin: 0; font-size: 0.8rem; font-weight: 400">
+                                        runs greater than {{ball_ratio.expected_runs}}
+                                    </span>
+                                </div>
+                                <div class="ratio-bet--value py-2 back-bet align-self-strech" @click="handleClick('YES', ball_ratio.ratio.ratio_a, 'ball', null, ball_ratio.ball_num)" >
+                                    {{ball_ratio.ratio.ratio_a}}
+                                </div>
+                                <div class="ratio-bet--value py-2 lay-bet align-self-strech" @click="handleClick('NO', ball_ratio.ratio.ratio_b, 'ball', null, ball_ratio.ball_num)" >
+                                    {{ball_ratio.ratio.ratio_b}}
+                                </div>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech">
-                                1.2
-                            </div>
-                            <div class="ratio-bet--value py-2 lay-bet align-self-strech">
-                                1.4
-                            </div>
-                        </div>                    
+                        </span>                    
                     </div>
                 </div>                                                       
             </div>            

@@ -1,4 +1,3 @@
-from pyexpat import model
 from django.db.models.signals import post_save
 from django.conf import settings
 from django.db import models
@@ -77,6 +76,27 @@ class Match(models.Model):
     #         self.diamond.save()
     #     return super().save(*args, **kwargs)
 
+    @property
+    def current_over(self):                
+        score = Score.objects.filter(match=self).order_by('-updated_at').first()
+        if score:
+            return score.overs
+        return None
+    
+    @property
+    def current_ball(self):                
+        score = Score.objects.filter(match=self).order_by('-updated_at').first()
+        if score:
+            return get_ball_num(score.overs)
+        return None
+    
+    @property
+    def batting_team(self):                
+        score = Score.objects.filter(match=self).order_by('-updated_at').first()
+        if score:
+            return score.team
+        return None
+
 import random
 
 class RatioModel(models.Model):
@@ -116,9 +136,14 @@ class Score(models.Model):
     runs = models.IntegerField(default=0)
     wickets = models.IntegerField(default=0)
     overs = models.FloatField(default=0)     
+    updated_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.match.match_name} - {self.team}"   
+    
+    def save(self, *args, **kwargs):
+        self.updated_at = datetime.now()
+        return super().save(*args, **kwargs)
 
 class OverToOverScore(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE)
@@ -166,7 +191,7 @@ class Bet(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     match = models.ForeignKey(Match, on_delete=models.SET_NULL, blank=True, null=True)
     amount_invested = models.FloatField(default=0)
-    invested_on = models.CharField(max_length=20)    
+    invested_on = models.CharField(max_length=50)    
     result = models.CharField(choices=RESULT_CATEGORY_CHOICES, max_length=5, null=True, blank=True)    
     paid = models.BooleanField(default=False)
     paid_on = models.DateTimeField(blank=True, null=True)
@@ -198,7 +223,7 @@ class MatchBet(Bet):
         return f"{self.user.username} - MatchBet - Rs.{self.amount_invested}"        
 
 class OverToOverBet(Bet):    
-    over_num = models.IntegerField() 
+    over_num = models.FloatField() 
     team = models.CharField(max_length=50)
     ratio_invested = models.FloatField()
 
@@ -206,12 +231,16 @@ class OverToOverBet(Bet):
         return f"{self.user.username} - OverBet - Rs.{self.amount_invested}"      
 
 class BallToBallBet(Bet):    
-    ball_num = models.IntegerField() 
+    ball_num = models.FloatField() 
     team = models.CharField(max_length=50)
     ratio_invested = models.FloatField()
 
     def __str__(self) -> str:
         return f"{self.user.username} - Ball2Ball - Rs.{self.amount_invested}"      
+    
+    def save(self, *args, **kwargs):
+        self.ball_num = get_ball_num(self.ball_num)
+        return super().save(*args, **kwargs)
 
 class BookMakerBet(Bet):
     bookmaker_id = models.CharField(max_length=10)

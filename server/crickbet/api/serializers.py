@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils.encoding import force_text, force_bytes
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from .models import Account, BallToBallRatio, BookMaker, Match, OverToOverRatio, UserProfile, Score, MatchBet, TossBet, OverToOverBet, BookMakerBet, BallToBallBet, Recharge
+from .models import Account, BallToBallRatio, BookMaker, Match, OverToOverRatio, Ratio, UserProfile, Score, MatchBet, TossBet, OverToOverBet, BookMakerBet, BallToBallBet, Recharge
 
 
 class LoginSerializer(serializers.ModelSerializer):
@@ -207,10 +207,40 @@ class UserUpdateSerializer(serializers.Serializer):
         return user
 
 class UserProfileSerializer(serializers.ModelSerializer):
+
+    username = serializers.SerializerMethodField('get_username')
+    pending_balance = serializers.SerializerMethodField('get_pending_balance')
+    balance  = serializers.SerializerMethodField('get_balance')
+
     class Meta:
         model = UserProfile
-        fields = "__all__"
+        fields = ["username", "pending_balance", "id", "balance"]        
         depth = 2
+    
+    def get_username(self, user_profile):
+        return user_profile.user.username
+
+    def get_balance(self, user_profile):
+        return user_profile.user.account.balance
+
+    def get_pending_balance(self, user_profile):
+        def sum_pending(bets, pending_amount):
+            for bet in bets:
+                pending_amount += bet.amount_invested        
+            return pending_amount
+        pending_amount = 0
+        user = user_profile.user
+        bets = MatchBet.objects.filter(user=user, paid=False)
+        pending_amount = sum_pending(bets, pending_amount)
+        bets = OverToOverBet.objects.filter(user=user, paid=False)
+        pending_amount = sum_pending(bets, pending_amount)     
+        bets = BallToBallBet.objects.filter(user=user, paid=False)
+        pending_amount = sum_pending(bets, pending_amount)     
+        bets = BookMakerBet.objects.filter(user=user, paid=False)
+        pending_amount = sum_pending(bets, pending_amount)     
+        bets = TossBet.objects.filter(user=user, paid=False)
+        pending_amount = sum_pending(bets, pending_amount)   
+        return pending_amount
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -218,6 +248,10 @@ class AccountSerializer(serializers.ModelSerializer):
         fields = "__all__"        
 
 class MatchSerializer(serializers.ModelSerializer):
+    batting_team = serializers.ReadOnlyField()
+    current_over = serializers.ReadOnlyField()
+    current_ball = serializers.ReadOnlyField()
+    
     class Meta:
         model = Match
         fields = "__all__"
@@ -228,15 +262,30 @@ class ScoreSerializer(serializers.ModelSerializer):
         model = Score
         fields = "__all__"
 
+class RatioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ratio
+        fields = "__all__"
+
 class OverToOverRatioSerializer(serializers.ModelSerializer):
     class Meta:
         model = OverToOverRatio
         fields = "__all__"
+    
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response['ratio'] = RatioSerializer(instance.ratio).data
+        return response
 
 class BallToBallRatioSerializer(serializers.ModelSerializer):
     class Meta:
         model = BallToBallRatio
         fields = "__all__"
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response['ratio'] = RatioSerializer(instance.ratio).data
+        return response 
 
 class MatchBetSerializer(serializers.ModelSerializer):
     class Meta:
@@ -247,6 +296,7 @@ class BallToBallBetSerializer(serializers.ModelSerializer):
     class Meta:
         model = BallToBallBet
         fields = "__all__"
+        
 
 class TossBetSerializer(serializers.ModelSerializer):
     class Meta:

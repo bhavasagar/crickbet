@@ -17,7 +17,7 @@ class FetchMatchesList:
     
     def __init__(self) -> None:
         self.api_key = settings.API_KEY
-        self.start_date = datetime.now().strftime("%Y-%m-%d") # "2022-05-15"# 
+        self.start_date = datetime.now().strftime("%Y-%m-%d") # "2022-05-15" # 
         end_date = datetime.now() + timedelta(days=1)
         self.end_date = end_date.strftime("%Y-%m-%d") # "2022-05-16" #
         self.teams = None
@@ -61,7 +61,7 @@ class FetchMatchesList:
             bet.save()   
 
     def _create_match_from_data(self, match):
-        from .models import Ratio, Match
+        from .models import Ratio, Match, OverToOverRatio, BallToBallRatio
         gold = Ratio.objects.create()
         diamond = Ratio.objects.create()
         toss_bet_ratio = Ratio.objects.create()
@@ -72,7 +72,7 @@ class FetchMatchesList:
                 status=match['status'], date=datetime.strptime(match['starting_at'], "%Y-%m-%dT%H:%M:%S.000000Z"), gold=gold, tossbet_ratio = toss_bet_ratio, 
                 diamond=diamond, match_id=match['id'], team_a_image=self.teams[match["localteam_id"]]["image_path"], 
                 team_b_image=self.teams[match["visitorteam_id"]]["image_path"])        
-                 
+        over2over = OverToOverRatio.objects.create(match=db_match)
         return db_match
 
     def _set_score(self, score, db_match, team, item_no):
@@ -87,9 +87,16 @@ class FetchMatchesList:
         from .models import OverToOverBet, BallToBallBet    
         print(score[1])    
         batting_team = self.teams[score[1]["team_id"]]["name"]
-        print(batting_team)
         batting_team_id = score[1]["team_id"]
-        over_num = int(score[1]['overs'])               
+        item_num = 1
+        updated_at_1 = datetime.strptime(score[1]['updated_at'], "%Y-%m-%dT%H:%M:%S.000000Z")
+        updated_at_2 = datetime.strptime(score[-1]['updated_at'], "%Y-%m-%dT%H:%M:%S.000000Z")
+        if updated_at_1 < updated_at_2:
+            batting_team = self.teams[score[-1]["team_id"]]["name"]
+            batting_team_id = score[-1]["team_id"]
+            item_num = -1
+        print(batting_team)
+        over_num = int(score[item_num]['overs'])               
         if over_num > 0:
             over_previous_bets = OverToOverBet.objects.filter(match=db_match, over_num__lte=over_num, paid=False)
             all_b2b_data = self._request("GET",self.ball2ballscore_url)            
@@ -113,7 +120,7 @@ class FetchMatchesList:
                     actual_score = get_over_score(int(bet.over_num))
                     self._pass_bets([bet], actual_score)
                 
-                ball_num = get_ball_num(score[1]['overs'])
+                ball_num = get_ball_num(score[item_num]['overs'])
                 ball_previous_bets = BallToBallBet.objects.filter(match=db_match, ball_num__lte=ball_num, paid=False)
                 for bet in ball_previous_bets:
                     actual_score = int(get_ball_score(bet.ball_num))                    

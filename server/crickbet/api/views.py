@@ -193,6 +193,7 @@ def get_match_data(match):
     match_data["bookmaker"] = BookMakerSerializer(bookmakers, many=True).data
     match_data["over_to_over_ratios"] = []
     match_data["ball2ball_ratios"] = []
+    match_data['current_over'] = match.current_over
     scores_exist = False
     if scorea.exists():
         scores_exist = True
@@ -204,7 +205,7 @@ def get_match_data(match):
         serialized_score_b = ScoreSerializer(scoreb.first())
         match_data[serialized_score_b.data["team"]] = serialized_score_b.data 
     if scores_exist:
-        over2over_ratios = OverToOverRatio.objects.filter(match=match, over_num__gte=int(match.score_set.last().overs))         
+        over2over_ratios = OverToOverRatio.objects.filter(match=match)         
         over2over_serializer = OverToOverRatioSerializer(over2over_ratios, many=True)
         ball2ball_ratios = BallToBallRatio.objects.filter(match=match)         
         ball2ball_serializer = BallToBallRatioSerializer(ball2ball_ratios, many=True)

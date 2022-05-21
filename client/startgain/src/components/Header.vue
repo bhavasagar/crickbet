@@ -2,8 +2,22 @@
 import logo from "@/assets/logo-cropped.png";
 import { ref } from "@vue/reactivity";
 import useStore from "@/stores/store.js";
+import { onBeforeMount, onBeforeUnmount } from "@vue/runtime-core";
 
 const store = useStore();
+var user_interval;
+
+onBeforeMount(() => {
+    clearInterval(user_interval);
+    if (!store.user) {        
+        store.getUserDetails();
+        user_interval = setInterval(store.getUserDetails, 5*60*1000);
+    }
+});
+
+onBeforeUnmount(() => {
+    clearInterval(user_interval);
+})
 
 const usermenu = ref(null)
 const openMenu = event => {
@@ -44,14 +58,14 @@ const items = [
             <router-link :to="{name: 'home'}" class="logo--div">
                 <img :src="logo" alt="">
             </router-link>
-            <div class="user-details p-3 flex flex-column align-items-end ">
+            <div class="user-details p-3 flex flex-column align-items-end " v-if="store.user" >
                 <div id="balance" style="float: right;" class="flex flex-row align-items-center">                       
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M21 7.28V5c0-1.1-.9-2-2-2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-2.28c.59-.35 1-.98 1-1.72V9c0-.74-.41-1.37-1-1.72zM20 9v6h-7V9h7zM5 19V5h14v2h-6c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h6v2H5z"/><circle cx="16" cy="12" r="1.5"/></svg>
-                    <span class="ml-2">Bal: {store.user.balance}</span>
+                    <span class="ml-2">Bal: {{store.user.balance}}</span>
                 </div>                
                 <div id="username" style="text-align: right; width: max-content" >
-                    <span class="mr-2">Exp: 0 </span>
-                    <span style="cursor: pointer;"  @click="openMenu" >Username123 <span class="pi pi-angle-down"></span></span>
+                    <span class="mr-2">Exp: {{store.user.pending_balance}} </span>
+                    <span style="cursor: pointer;"  @click="openMenu" > {{store.user.username}} <span class="pi pi-angle-down"></span></span>
                     <Menu ref="usermenu" :popup="true" :model="items" />  
                 </div>
             </div>

@@ -2,20 +2,21 @@
 import logo from "@/assets/logo-cropped.png";
 import { ref } from "@vue/reactivity";
 import Header from "@/components/Header.vue";
-import { onMounted, onBeforeMount, onUnmounted } from "@vue/runtime-core";
+import { onMounted, onBeforeMount, onUnmounted, onBeforeUnmount } from "@vue/runtime-core";
 import userStore from "@/stores/store.js";
 
 const store = userStore();
 var fetch_matches
 
 onBeforeMount(() => {
+    clearInterval(fetch_matches);
     let data = store.getCurrentMatches();
     fetch_matches = setInterval(() => {
         let data = store.getCurrentMatches();
     }, 60*1000)    
 });
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
     clearInterval(fetch_matches);
 });
 
@@ -79,6 +80,9 @@ console.log(store.current_matches);
                 </div>
             </router-link>
         </div>   
+        <div class="my-3" v-else>
+            <span class="p-2" > No live matches are running.</span>
+        </div>
     </main>  
 </template>
 
