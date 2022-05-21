@@ -29,6 +29,7 @@ const useStore = defineStore({
       const data = await resp.json();      
       if (!resp.ok) {
         localStorage.setItem("login", JSON.stringify({'state': "login_required"}))
+        localStorage.removeItem("credentials")
         return resp
       }
       // credentials.access_token = data.access_token;
