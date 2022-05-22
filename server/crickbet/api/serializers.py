@@ -152,13 +152,13 @@ class UserRegisterSerializer(serializers.Serializer):
             raise exceptions.ValidationError(_("Please fill all the fields"))
 
         if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():       
-            raise exceptions.NotAcceptable(_("User already exists"))
+            raise exceptions.NotAcceptable(_("User already exists"))            
 
         return attrs
 
 
     def send_verification_email(self, user):
-        email_verification_link = "http://localhost:8000" + reverse('email_verification', kwargs={'uid': urlsafe_base64_encode(force_bytes(user.id)), 'token': default_token_generator.make_token(user)})
+        email_verification_link = settings.UI_WEBSITE_URL + reverse('email_verification', kwargs={'uid': urlsafe_base64_encode(force_bytes(user.id)), 'token': default_token_generator.make_token(user)})
         sub = 'CrickBet Email Verification Link'
         message = f"""
         Hello {user.username}, 
@@ -172,7 +172,9 @@ class UserRegisterSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         print(validated_data)
-        user = User.objects.create(**validated_data)
+        user = User.objects.create(username=validated_data.get('username'), email=validated_data.get('email'))
+        user.set_password(validated_data.get('password'))
+        user.save()
         self.send_verification_email(user)
         return user
     
