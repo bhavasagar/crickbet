@@ -20,6 +20,24 @@ onBeforeUnmount(() => {
     clearInterval(fetch_matches);
 });
 
+const other_games = [{
+                        name: "CASINO",
+                        img: "/images/casino.jpeg",
+                        link: '/',
+                        getImgUrl() {
+                            return this.img
+                        }
+                    },
+                    {
+                        name: "COLOR TRADE",
+                        img: "/images/colortrade.png",
+                        link: 'https://colortrade.startgain.in/',
+                        getImgUrl() {
+                            return this.img
+                        }
+                    }
+]
+
 console.log(store.current_matches);
 
 </script>
@@ -83,11 +101,30 @@ console.log(store.current_matches);
         <div class="my-3" v-else>
             <span class="p-2" > No live matches are running.</span>
         </div>
+
+        <div class="other-games container ">
+            <h2 class="p-2 ml-2" >Other Games</h2>
+            <div class="p-2 m-2 other-games--div">
+                <a class="game-info block" :href="game.link" style="position: relative; width: fit-content;"  :key="game.name" v-for="game in other_games" >
+                    <div class="img--div" >
+                        <img :src="game.getImgUrl()" style="height: 8.5rem; width: 8.5rem;" :alt="game.name">
+                    </div>
+                    <div class="img-detail--div py-1" style="position: absolute;bottom: 0.25rem;width: 100%;text-align: center;margin: 0 auto;background: #000;color: #fff;font-weight: bold;font-size: 1rem;">
+                        <span style="font-weight: 600" >{{game.name}}</span>
+                    </div>
+                </a>
+            </div>
+        </div>
     </main>  
 </template>
 
 
 <style scoped>
+.other-games--div{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 1rem;
+}
 a{
     text-decoration: none;
 }

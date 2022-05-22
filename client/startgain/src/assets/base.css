@@ -76,6 +76,6 @@ a, a:hover, a:visited{
 :root {
   --dark-shade-1: rgba(25, 25, 25, 1);
   --dark-shade-2: #2c2c2c;
-  --lay-bg: rgba(249, 155, 168, 0.5);
-  --back-bg:  rgba(110,188,234, 0.5);
+  --lay-bg: rgba(249, 155, 168, 0.7);
+  --back-bg:  rgba(110,188,234, 0.7);
 }

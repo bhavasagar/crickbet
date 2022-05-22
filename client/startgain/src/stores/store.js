@@ -4,7 +4,7 @@ const useStore = defineStore({
   id: "store",
   state: () => {
     return {
-      server: "http://localhost:8000/api/v1",      
+      server: "https://api.startgain.in/api/v1",      
       current_matches: null,
       match: null,
       user: null
@@ -45,9 +45,13 @@ const useStore = defineStore({
         if (data.code == 'token_not_valid') {
           let refrsh_resp = await this.refreshTokens();
           console.log(url, refrsh_resp);
-          if (refrsh_resp.ok && data.code != 'token_not_valid') {
-            this.getCurrentMatches(url, options);            
+          if (refrsh_resp.ok && data.code != 'token_not_valid') {            
+            this.getCurrentMatches(url, options);                   
           }          
+          else{
+            localStorage.setItem("login", JSON.stringify({'state': "login_required"}))
+            localStorage.removeItem('credentials');
+          }
         }
       }
 

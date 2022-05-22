@@ -104,6 +104,7 @@ class RatioModel(models.Model):
     ratio = models.ForeignKey(Ratio, on_delete=models.CASCADE)
     expected_runs = models.IntegerField(default='')
     expected_wickets = models.IntegerField(default=0)
+    team = models.CharField(default='', max_length=50)
 
     class Meta:
         abstract = True
@@ -286,8 +287,9 @@ def userprofile_receiver(sender, instance, created, *args, **kwargs):
 @receiver(post_save, sender=OverToOverRatio)        
 def userprofile_receiver(sender, instance, created, *args, **kwargs):
     if created:
-        for ball_num in range(int(instance.over_num), int(instance.over_num) + 0.6, 0.1):
-            ratio = Ratio.objects.create(10,13)
+        for ball_num in range(int(instance.over_num)*10+1, int(instance.over_num)*10 + 7):
+            ball_num = float(ball_num/10)   
+            ratio = Ratio.objects.create(ratio_a=10,ratio_b=13)
             if not BallToBallRatio.objects.filter(match=instance.match, ball_num=ball_num).exists():
-                BallToBallRatio.objects.create(match=instance.match, ratio=ratio, ball_num=ball_num, expected_runs = str(random.randint(0,6)))
+                BallToBallRatio.objects.create(match=instance.match, ratio=ratio, ball_num=ball_num, team=instance.team, expected_runs = str(random.randint(0,5)))
         

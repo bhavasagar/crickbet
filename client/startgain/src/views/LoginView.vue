@@ -173,8 +173,8 @@ section{
     justify-content: center;
 }
 .container {
-    min-width: 24rem;
-    width: auto;
+    width: calc(100vw - 2rem);
+    max-width: 28rem;
     margin: 3rem auto;      
 }
 .card{
@@ -190,17 +190,17 @@ section{
 
 <style>
 .p-button-custom {
-    background: rgb(21, 21, 21);    
-    width: 99%;
-    margin: 0.5rem auto;
-    border-radius: 5px;
-    font-size: 1.1rem;
-    border: 1px solid rgb(50, 50, 50);
+    background: rgb(21, 21, 21)  !important;    
+    width: 99% !important;
+    margin: 0.5rem auto !important;
+    border-radius: 5px !important;
+    font-size: 1.1rem !important;
+    border: 1px solid rgb(50, 50, 50) !important;
 }
 .p-button-custom:enabled:active, .p-button-custom:enabled:hover {
-    background: rgb(21, 21, 21);  
-    color: #ffffff;
-    border-color: rgb(50, 50, 50);  
+    background: rgb(21, 21, 21) !important;  
+    color: #ffffff !important;
+    border-color: rgb(50, 50, 50) !important;  
 }
 .p-button:focus {
     box-shadow: 0 0 0 0.2rem rgba(208, 207, 207, 0.5) !important;
