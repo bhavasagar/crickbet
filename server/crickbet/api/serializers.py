@@ -1,3 +1,5 @@
+from email import message
+from lib2to3.pgen2 import token
 from rest_framework import serializers, exceptions
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
@@ -37,7 +39,10 @@ class LoginSerializer(serializers.ModelSerializer):
         if not (email and password):
             raise exceptions.ValidationError(_('Must Include Password and Email'))
         try:
-            user = User.objects.get(email=email)        
+            user = User.objects.filter(email=email)  or User.objects.filter(username=email)
+            if not user.exists():
+                raise exceptions.NotFound(_("Email or Phone Number doesn't exist in database"))
+            user = user.first()
         except User.DoesNotExist:
             raise exceptions.NotFound(_("Email doesn't exist in database"))
         if not user:
@@ -57,6 +62,9 @@ class LoginSerializer(serializers.ModelSerializer):
 
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True, write_only=True)
+    uid = serializers.CharField(read_only=True)
+    token = serializers.CharField(read_only=True)  
+    message = serializers.CharField(read_only=True)  
 
     class Meta:
         model = User
@@ -70,9 +78,12 @@ class ForgotPasswordSerializer(serializers.Serializer):
             user = User.objects.get(email=email)        
         except User.DoesNotExist:
             raise exceptions.NotFound(_("Email doesn't exist in database"))
-                
-        reset_password_link = settings.UI_WEBSITE_URL + urlsafe_base64_encode(force_bytes(user.id)) + '/' + default_token_generator.make_token(user) 
+        
+        uid = urlsafe_base64_encode(force_bytes(user.id))
+        token = default_token_generator.make_token(user) 
+        reset_password_link = settings.UI_WEBSITE_URL + uid + '/' + token
         print(reset_password_link, user)
+        resp_message = "Reset password link is sent to your email."
         sub = 'CrickBet Password Rest Link'
         message = f"""
         Hello {user.username}, 
@@ -82,10 +93,12 @@ class ForgotPasswordSerializer(serializers.Serializer):
         try: 
             send_mail(sub, message=message, from_email=settings.EMAIL_HOST_USER, recipient_list=[user.email])
         except:
-            raise exceptions.ErrorDetail(_("Unable to send Email, Please contact customer support."))
+            resp_message = _("Unable to send Email, Please contact customer support.")
 
         return {
-            "message": "Reset password link is sent to your email."
+            "message": resp_message,            
+            "uid": uid,
+            "token": token        
         }
 
 
@@ -109,8 +122,8 @@ class ResetPasswordSerializer(serializers.Serializer):
             raise AssertionError('Password and Confirm Password are not same')
                 
         print(attrs, self.context.get('data'))
-        token = self.context.get('data')['token']
-        uid = force_text(urlsafe_base64_decode(self.context.get('data')['uid']))
+        token = attrs.get('data')['token']
+        uid = force_text(urlsafe_base64_decode(attrs.get('data')['uid']))
 
         try:
             user = User.objects.get(pk=uid)        
@@ -173,9 +186,11 @@ class UserRegisterSerializer(serializers.Serializer):
     def create(self, validated_data):
         print(validated_data)
         user = User.objects.create(username=validated_data.get('username'), email=validated_data.get('email'))
-        user.set_password(validated_data.get('password'))
-        user.save()
-        self.send_verification_email(user)
+        user.set_password(validated_data.get('password'))            
+        try:
+            self.send_verification_email(user)
+        except:
+            pass
         return user
     
 class UserUpdateSerializer(serializers.Serializer):

@@ -385,7 +385,7 @@ const handleBetSubmission = () => {
                             </div>
                         </div>
                         
-                        <span v-for="over in store.match.over_to_over_ratios" :key="over.id" >
+                        <span v-for="over in store.match.over_to_over_ratios.filter(item => item.team == store.match.batting_team) " :key="over.id" >
                             <div class="flex flex-row" v-if=" parseFloat(store.match.current_over)+1 < parseFloat(over.over_num)" >
                                 <div class="team--name py-2 px-1 span-2-col align-self-center flex flex-column">
                                     <span>
@@ -425,7 +425,7 @@ const handleBetSubmission = () => {
                                 NO  
                             </div>
                         </div>
-                        <span v-for="ball_ratio in store.match.ball2ball_ratios" :key="ball_ratio.id">
+                        <span v-for="ball_ratio in store.match.ball2ball_ratios.filter(item => item.team == store.match.batting_team)" :key="ball_ratio.id">
                             <div class="flex flex-row" v-if=" parseFloat(store.match.current_over)+1 < parseFloat(ball_ratio.ball_num)" >
                                 <div class="team--name py-2 px-1 span-2-col align-self-center flex flex-column">
                                     <span>

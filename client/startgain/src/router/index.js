@@ -6,6 +6,7 @@ import LoginView from "../views/LoginView.vue";
 import RegisterView from "../views/RegisterView.vue";
 import ForgotPasswordView from "../views/ForgotPasswordView.vue";
 import ResetPasswordView from "../views/ResetPasswordView.vue";
+import ComingSoonView from "../views/ComingSoonView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -46,6 +47,11 @@ const router = createRouter({
       name: "register",
       component: RegisterView,
     },
+    {
+      path: "/new",
+      name: "new",
+      component: ComingSoonView,
+    },
     // {
     //   path: "/about",
     //   name: "about",
@@ -65,7 +71,7 @@ router.beforeEach((to, from, next) => {
     console.log("In router")
     let login_state = localStorage.getItem('login')
     if (!login_state) {
-      login_state = 'login_requiured';
+      login_state = 'login_required';
     }
     else {
       login_state = JSON.parse(login_state).state;

@@ -25,7 +25,7 @@ const userdata = reactive({
     });
 
 const rules = {   
-    email: { required, email },
+    email: { required },
     password: { required }
 };
 
@@ -133,9 +133,9 @@ const handleSubmit = async (isFormValid) => {
                             <InputText class="w-full " type="password" placeholder="Password" v-model="v$.password.$model" :class="{'p-invalid':v$.password.$invalid && submitted}" :toggleMask="true" />
                         </div>    
                         <small v-if="(v$.password.$invalid && submitted) || v$.password.$pending.$response" class="p-error mb-3">{{v$.password.required.$message.replace('Value', 'Password')}}</small>
-                        <span class="text-forgot mt-3"><router-link :to="{ name: 'forgot_password'}">Forgot Password</router-link></span>            
+                        <span class="text-forgot mt-3"><a href="https://colortrade.startgain.in/accounts/password/reset/">Forgot Password</a></span>            
                         <Button type="submit"  label="Login" class="p-button p-button-custom mt-2"  />    
-                        <span class="text-create">Don't you have an account? <router-link :to="{ name: 'register'}">create one</router-link></span>            
+                        <span class="text-create">Don't you have an account? <a href="https://colortrade.startgain.in/accounts/signup/">create one</a></span>            
                     </form>                  
                 </div>
             </div>

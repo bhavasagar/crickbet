@@ -20,22 +20,22 @@ onBeforeUnmount(() => {
     clearInterval(fetch_matches);
 });
 
-const other_games = [{
-                        name: "CASINO",
-                        img: "/images/casino.jpeg",
-                        link: '/',
-                        getImgUrl() {
-                            return this.img
-                        }
-                    },
-                    {
-                        name: "COLOR TRADE",
-                        img: "/images/colortrade.png",
-                        link: 'https://colortrade.startgain.in/',
-                        getImgUrl() {
-                            return this.img
-                        }
-                    }
+class Game{
+    constructor(name, img, link) {
+        this.name = name;
+        this.img = img;
+        this.link= link;
+    }
+    getImgUrl() {
+        return this.img;
+    }
+}
+
+const other_games = [
+    new Game("CASINO","/images/casino.jpeg",'/new'),
+    new Game("COLOR TRADE","/images/colortrade.png",'/'),
+    new Game("ANDHAR BAHAR","/images/andar_bahar.jpeg",'/new'),
+    new Game("DRAGON TIGER","/images/dragon_tiger.jpg",'/new'),                                                     
 ]
 
 console.log(store.current_matches);
