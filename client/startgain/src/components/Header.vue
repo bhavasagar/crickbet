@@ -29,26 +29,17 @@ const items = [
 				{
 					label: 'Home',
 					icon: 'pi pi-home',
-					command: () => {
-						this.$toast.add({severity:'success', summary:'Updated', detail:'Data Updated', life: 3000});
-					}
-				},
-				{
-					label: 'Delete',
-					icon: 'pi pi-times',
-					command: () => {
-						this.$toast.add({ severity: 'warn', summary: 'Delete', detail: 'Data Deleted', life: 3000});
-					}
-				},
-				{
-					label: 'Change Password',
-					icon: 'pi pi-external-link',
-					url: 'https://vuejs.org/'
-				},
+					to: '/'
+				},						
 				{
                     label: 'History',
                     icon: 'pi pi-upload',
-                    to: '/fileupload'
+                    to: '/'
+                },
+                {
+                    label: 'Logout',
+                    icon: 'pi pi-sign-out',
+                    to: '/logout'
                 }
 			]
 </script>

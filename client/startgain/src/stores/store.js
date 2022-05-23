@@ -4,8 +4,8 @@ const useStore = defineStore({
   id: "store",
   state: () => {
     return {
-      // server: "https://api.startgain.in/api/v1",      
-      server: "http://localhost:8000/api/v1",      
+      server: "https://api.startgain.in/api/v1",      
+      // server: "http://localhost:8000/api/v1",      
       current_matches: null,
       match: null,
       user: null

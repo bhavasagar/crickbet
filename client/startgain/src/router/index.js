@@ -7,6 +7,7 @@ import RegisterView from "../views/RegisterView.vue";
 import ForgotPasswordView from "../views/ForgotPasswordView.vue";
 import ResetPasswordView from "../views/ResetPasswordView.vue";
 import ComingSoonView from "../views/ComingSoonView.vue";
+import LogoutView from "../views/LogoutView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -33,6 +34,11 @@ const router = createRouter({
       component: LoginView,
     },
     {
+      path: "/logout",
+      name: "logout",
+      component: LogoutView,
+    },
+    {
       path: "/forgot-password",
       name: "forgot_password",
       component: ForgotPasswordView,
@@ -51,15 +57,7 @@ const router = createRouter({
       path: "/new",
       name: "new",
       component: ComingSoonView,
-    },
-    // {
-    //   path: "/about",
-    //   name: "about",
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      // component: () => import("../views/AboutView.vue"),
-    // },
+    }
   ],
 });
 
@@ -76,6 +74,7 @@ router.beforeEach((to, from, next) => {
     else {
       login_state = JSON.parse(login_state).state;
     }
+    console.log(login_state);
     if (login_state == 'login_required' || login_state == 0) {
       next({ name: 'login' })
     } else {

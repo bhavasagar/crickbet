@@ -225,7 +225,11 @@ class CurrentMatchesAPI(APIView):
         data = []
         for match in matches:    
             match_data = get_match_data(match)
-            data.append(match_data)                  
+            data.append(match_data)     
+        old_matchs = Match.objects.filter(not_required=True).order_by('-id')      
+        for match in old_matchs[:2]:
+            match_data = get_match_data(match)
+            data.append(match_data)
         print(data)
         return Response({"data": data}, status=status.HTTP_200_OK)                
 

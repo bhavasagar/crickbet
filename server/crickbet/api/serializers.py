@@ -20,7 +20,7 @@ class LoginSerializer(serializers.ModelSerializer):
 
     Model: User
     """
-    email = serializers.EmailField(write_only=True)
+    email = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True)
     access_token = serializers.CharField(read_only=True)
     refresh_token = serializers.CharField(read_only=True)   
@@ -122,8 +122,8 @@ class ResetPasswordSerializer(serializers.Serializer):
             raise AssertionError('Password and Confirm Password are not same')
                 
         print(attrs, self.context.get('data'))
-        token = attrs.get('data')['token']
-        uid = force_text(urlsafe_base64_decode(attrs.get('data')['uid']))
+        token = self.context.get('data')['token']
+        uid = force_text(urlsafe_base64_decode(self.context.get('data')['uid']))
 
         try:
             user = User.objects.get(pk=uid)        
@@ -186,7 +186,8 @@ class UserRegisterSerializer(serializers.Serializer):
     def create(self, validated_data):
         print(validated_data)
         user = User.objects.create(username=validated_data.get('username'), email=validated_data.get('email'))
-        user.set_password(validated_data.get('password'))            
+        user.set_password(validated_data.get('password'))
+        user.save()            
         try:
             self.send_verification_email(user)
         except:

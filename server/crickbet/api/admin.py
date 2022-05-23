@@ -7,6 +7,16 @@ for i in models:
     admin.site.register(i)
 
 
+# class MyAdminSite(admin.AdminSite):
+#     site_header = 'CrickBet Admin Page'
+
+# admin_site = MyAdminSite(name='Crickbet')
+
+# admin.site_header = 'CrickBet Admin Page'
+admin.autodiscover()
+admin.site.enable_nav_sidebar = False
+
+
 # admin.site.register(UserProfile)
 # admin.site.register(Match)
 # admin.site.register(MatchBet)

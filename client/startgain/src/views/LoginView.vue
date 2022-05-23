@@ -73,8 +73,8 @@ const sendRequest = async () => {
 
     else if (response.ok && result.access_token) {        
         
-        let message = {severity: ToastSeverity.SUCCESS, title: 'Login Successfull', body: `Welcome back, ${userdata.email}`}        
-        addToMessages(message);        
+        // let message = {severity: ToastSeverity.SUCCESS, title: 'Login Successfull', body: `Welcome back, ${userdata.email}`}        
+        // addToMessages(message);        
         
         let credentials = {access_token: result.access_token, refresh_token: result.refresh_token, email: userdata.email}        
         localStorage.setItem('credentials', JSON.stringify(credentials))

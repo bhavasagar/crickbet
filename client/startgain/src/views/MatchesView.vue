@@ -49,7 +49,7 @@ console.log(store.current_matches);
         <div class="container" v-if="store.current_matches">
             <router-link :to="{name: 'match_detail', params: {matchid: match.match_id} }" class="match--div px-3 py-2 block" :key="match.id" v-for="match in store.current_matches">
                 <div class="match--details flex flex-column">
-                    <span class="match--name">{{match.match_name}}</span>
+                    <span class="flex flex-row justify-content-between " ><span class="match--name">{{match.match_name}}</span> <span class="dot green-dot"  :class="match.not_required && 'red-dot'" >  </span> </span>
                     <span>{{match.date}}</span>
                 </div>
                 <div class="match--ratios">
@@ -139,6 +139,11 @@ a{
     .match--ratios{     
         grid-template-columns: repeat(6, 1fr);
     }    
+    .other-games--div{
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        grid-gap: 1rem;
+    }
 }
 .match-ratio > span {
     font-weight: 600;
@@ -164,5 +169,21 @@ a{
 .match--name{
     font-size: 1.1rem;
     font-weight: 600;
+    width: 89%;
+}
+.dot{
+    width: 0.75rem;
+    height: 0.75rem;
+    background: #000;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    border-radius: 100%;
+}
+.green-dot{
+    background: #008000;
+}
+.red-dot{
+    background: #D2042D;
 }
 </style>
