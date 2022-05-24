@@ -8,10 +8,13 @@ const store = useStore();
 var user_interval;
 
 onBeforeMount(() => {
-    clearInterval(user_interval);
+    clearInterval(user_interval);    
     if (!store.user) {        
         store.getUserDetails();
         user_interval = setInterval(store.getUserDetails, 5*60*1000);
+    }
+    if (!store.page_detials) {
+        store.getPageDetails();
     }
 });
 
@@ -61,17 +64,17 @@ const items = [
                 </div>
             </div>
         </div>
-        <div class="scroll--div">
+        <div class="scroll--div" v-if="store.page">
             <div class="scroll-text">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Aut error maiores veritatis amet suscipit, tenetur repellat? Necessitatibus facilis veritatis autem quam ipsa? Ad architecto cumque esse quis placeat suscipit tenetur.
+                {{store.page.scroll_text}}
             </div>
         </div>    
-        <div class="highlight">
-            IPL 2022
+        <div class="highlight" v-if="store.page" >
+            {{store.page.heading}}
         </div>
         <div class="menu--div ">
             <div class="menu--item">
-                <router-link to="/">
+                <router-link to="/" style="color: #D4AF37;">
                     Cricket
                 </router-link>
             </div>

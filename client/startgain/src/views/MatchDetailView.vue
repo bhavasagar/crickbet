@@ -4,6 +4,9 @@ import backgroundImage from "@/assets/ground.jpg"
 import { onMounted, onBeforeMount, onUnmounted, ref, reactive, onBeforeUnmount } from "@vue/runtime-core";
 import userStore from "@/stores/store.js";
 import { useRoute } from "vue-router";
+import Loader from "@/components/Loader.vue";
+
+import formatDateTime from "@/helpers/FormatDateTime";
 
 const route = useRoute();
 var fetch_matches
@@ -16,7 +19,8 @@ const bet_details = reactive({
     type: null,
     over_num: null,
     ball_num: null,
-    bookmaker_id: null
+    bookmaker_id: null,
+    blocked: false
 })
 
 onBeforeMount(() => {
@@ -45,6 +49,7 @@ const handleClick = (invested_on, ratio_invested, type, over_num=null, ball_num=
 const handleBetSubmission = () => {
     console.log(bet_details)
     if (bet_details.type=='toss') {
+        if (store.match.tossbet_ratio.blocked) return;
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
         console.log(access_token);
         const url = `${store.server}/tossbet/`;
@@ -66,6 +71,7 @@ const handleBetSubmission = () => {
         }
     }
     else if (bet_details.type=='match') {
+        if (store.match.gold.ratio.blocked || store.match.diamond.ratio.blocked) return;
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
         console.log(access_token);
         const url = `${store.server}/matchbet/`;
@@ -79,7 +85,7 @@ const handleBetSubmission = () => {
                                 "invested_on": bet_details.invested_on,
                                 "ratio_invested": bet_details.ratio_invested
                                 })
-        }
+        }        
         const data = store.request(url, options)
         console.log(data)
         if (data.id) {
@@ -161,12 +167,13 @@ const handleBetSubmission = () => {
 
 <template>
     <main>
+        <Loader v-if="store.match ? store.meta.loading = false : store.meta.loading = true" />        
         <Header />
         <div class="container" v-if="store.match" >
             <div class="match--header p-2">
                 <span class="font-semibold text-base">{{store.match.match_name}}</span>
                 <span style="text-align: right;" class="block">
-                    {{store.match.date}}
+                    {{formatDateTime(store.match.date)}}
                 </span>
             </div>
             <div class="match-score-header p-3" style="font: size 0.95rem;background-position: center;" :style="{ backgroundImage: `url(${backgroundImage})` }">
@@ -204,7 +211,7 @@ const handleBetSubmission = () => {
                     </div>
                 </div>
                 <div class="toss-winner flex flex-row justify-content-start ml-2 font-bold">
-                    <span class="font-bold" >Toss Winner</span> <span class="mx-2">-</span> <span class="font-bold" > {{ store.match.toss_winning_team }}</span>
+                    <span class="font-bold" >Toss Winner</span> <span class="mx-2">-</span> <span class="font-bold" v-if="store.match.toss_winning_team" > {{ store.match.toss_winning_team }} </span><span class="font-bold" v-else> N/A </span>
                 </div>
             </div>
             
@@ -244,7 +251,7 @@ const handleBetSubmission = () => {
                                     {{store.match.team_a}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" style="width: 30%" @click="handleClick(store.match.team_a, store.match.tossbet_ratio.ratio_a, 'toss')" >
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.tossbet_ratio.blocked && 'blocked'" style="width: 30%" @click="!store.match.tossbet_ratio.blocked && handleClick(store.match.team_a, store.match.tossbet_ratio.ratio_a, 'toss')" >
                                 {{store.match.tossbet_ratio.ratio_a}}
                             </div>
                             
@@ -256,7 +263,7 @@ const handleBetSubmission = () => {
                                     {{store.match.team_b}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" style="width: 30%" @click="handleClick(store.match.team_b, store.match.tossbet_ratio.ratio_b, 'toss')" >
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.tossbet_ratio.blocked && 'blocked'" style="width: 30%" @click="!store.match.tossbet_ratio.blocked && handleClick(store.match.team_b, store.match.tossbet_ratio.ratio_b, 'toss')" >
                                 {{store.match.tossbet_ratio.ratio_b}}
                             </div>
                             
@@ -290,10 +297,10 @@ const handleBetSubmission = () => {
                                     {{store.match.team_a}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" @click="handleClick(store.match.team_a, store.match.gold.ratio_a, 'match')">
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.gold.blocked && 'blocked'" @click="!store.match.gold.blocked && handleClick(store.match.team_a, store.match.gold.ratio_a, 'match')">
                                 {{store.match.gold.ratio_a}}
                             </div>
-                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" @click="handleClick(store.match.team_b, store.match.gold.ratio_b, 'match')">
+                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="store.match.gold.blocked && 'blocked'" @click="!store.match.gold.blocked && handleClick(store.match.team_b, store.match.gold.ratio_b, 'match')">
                                 {{store.match.gold.ratio_b}}
                             </div>
                         </div>
@@ -304,10 +311,10 @@ const handleBetSubmission = () => {
                                     {{store.match.team_b}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" @click="handleClick(store.match.team_a, store.match.diamond.ratio_a, 'match')">
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.diamond.blocked && 'blocked'" @click="!store.match.diamond.blocked && handleClick(store.match.team_a, store.match.diamond.ratio_a, 'match')">
                                 {{store.match.diamond.ratio_a}}
                             </div>
-                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" @click="handleClick(store.match.team_b, store.match.diamond.ratio_b, 'match')">
+                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="store.match.diamond.blocked && 'blocked'" @click="!store.match.diamond.blocked && handleClick(store.match.team_b, store.match.diamond.ratio_b, 'match')">
                                 {{store.match.diamond.ratio_b}}
                             </div>
                         </div>
@@ -334,33 +341,19 @@ const handleBetSubmission = () => {
                             </div>
                         </div>
                         
-                        <div class="flex flex-row">
+                        <div class="flex flex-row" v-for="bookmaker in store.match.bookmaker" :key="bookmaker.id" >
                             <div class="team--name py-2 px-1 span-2-col align-self-center">
                                 <span>
-                                    Score in last over will be greater than 12?
+                                    {{bookmaker.question}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" @click="handleClick('replace it by qusestion', 'store.match.tossbet_ratio.ratio_a', 'bookmaker')">
-                                1.2
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="bookmaker.ratio.blocked && 'blocked'" @click="handleClick(bookmaker.question, bookmaker.ratio.ratio_a, 'bookmaker', null, null, bookmaker.id)">
+                                {{bookmaker.ratio.ratio_a}}
                             </div>
-                            <div class="ratio-bet--value py-2 lay-bet align-self-strech">
-                                1.4
+                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="bookmaker.ratio.blocked && 'blocked'" @click="handleClick(bookmaker.question, bookmaker.ratio.ratio_b, 'bookmaker', null, null, bookmaker.id)">
+                                {{bookmaker.ratio.ratio_b}}
                             </div>
-                        </div>
-
-                        <div class="flex flex-row">
-                            <div class="team--name span-2-col py-2 px-1 align-self-center">
-                                <span>
-                                    Wide ball in next over?
-                                </span>
-                            </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech">
-                                2.2
-                            </div>
-                            <div class="ratio-bet--value py-2 lay-bet align-self-strech">
-                                2.1
-                            </div>
-                        </div>
+                        </div>                        
 
                     </div>
                 </div>                           
@@ -396,10 +389,10 @@ const handleBetSubmission = () => {
                                         <!-- {{expected_runs}} -->
                                     </span>
                                 </div>
-                                <div class="ratio-bet--value py-2 back-bet align-self-strech" @click="handleClick('YES', over.ratio.ratio_a, 'over', over_num=over.over_num)" >
+                                <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="over.ratio.blocked && 'blocked'" @click="!over.ratio.blocked && handleClick('YES', over.ratio.ratio_a, 'over', over_num=over.over_num)" >
                                     {{over.ratio.ratio_a}}
                                 </div>
-                                <div class="ratio-bet--value py-2 lay-bet align-self-strech" @click="handleClick('NO', over.ratio.ratio_b, 'over', over_num=over.over_num)" >
+                                <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="over.ratio.blocked && 'blocked'" @click="!over.ratio.blocked && handleClick('NO', over.ratio.ratio_b, 'over', over_num=over.over_num)" >
                                     {{over.ratio.ratio_b}}
                                 </div>
                             </div>                    
@@ -435,10 +428,10 @@ const handleBetSubmission = () => {
                                         runs greater than {{ball_ratio.expected_runs}}
                                     </span>
                                 </div>
-                                <div class="ratio-bet--value py-2 back-bet align-self-strech" @click="handleClick('YES', ball_ratio.ratio.ratio_a, 'ball', null, ball_ratio.ball_num)" >
+                                <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="ball_ratio.ratio.blocked && 'blocked'" @click=" !ball_ratio.ratio.blocked && handleClick('YES', ball_ratio.ratio.ratio_a, 'ball', null, ball_ratio.ball_num)" >
                                     {{ball_ratio.ratio.ratio_a}}
                                 </div>
-                                <div class="ratio-bet--value py-2 lay-bet align-self-strech" @click="handleClick('NO', ball_ratio.ratio.ratio_b, 'ball', null, ball_ratio.ball_num)" >
+                                <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="ball_ratio.ratio.blocked && 'blocked'" @click="!ball_ratio.ratio.blocked && handleClick('NO', ball_ratio.ratio.ratio_b, 'ball', null, ball_ratio.ball_num)" >
                                     {{ball_ratio.ratio.ratio_b}}
                                 </div>
                             </div>
@@ -558,5 +551,25 @@ const handleBetSubmission = () => {
 }
 .p-button:focus {
     box-shadow: 0 0 0 0.2rem rgba(208, 207, 207, 0.5) !important;
+}
+.blocked{
+    position: relative;
+    background: rgba(0,0,0,0.5) !important;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    z-index: 100;
+    font-weight: bold;
+}
+.blocked::before {
+    content: "BLOCKED";
+    color: #f00;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding-top: 0.25rem;
+    border-right: 1px solid rgba(255,255,255, 0.2);
 }
 </style>

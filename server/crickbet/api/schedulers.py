@@ -142,7 +142,11 @@ class FetchMatchesList:
     def fetch_current_matches(self):                
         data = self._request("GET", self.current_matchs_url)        
         print("Fetched...")  
-        self.validate_data(data)         
+        self.validate_data(data)       
+
+    def blockratio(self, ratio):
+        ratio.blocked = True 
+        ratio.save()  
 
     def validate_data(self, data):
         from .models import Match, MatchBet, BookMaker, BookMakerBet, TossBet
@@ -169,6 +173,7 @@ class FetchMatchesList:
             if toss_winner:
                 toss_winner = self.teams[toss_winner]["name"]
                 db_match.toss_winning_team = toss_winner
+                self.blockratio(db_match.tossbet_ratio)
                 try:
                     # Toss bets
                     toss_bets = TossBet.objects.filter(match=db_match, paid=False)
@@ -186,7 +191,9 @@ class FetchMatchesList:
                 match_winner = self.teams[match.get('winner_team_id')]['name']
                 db_match.match_winning_team = match_winner 
                 db_match.ongoing = False                        
-                db_match.completed = True                                
+                db_match.completed = True        
+                self.blockratio(db_match.gold)
+                self.blockratio(db_match.diamond)                
                 # Match Bets
                 bets = MatchBet.objects.filter(match=db_match, paid=False)
                 self._pass_bets(bets, match_winner)                

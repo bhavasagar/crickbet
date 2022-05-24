@@ -4,11 +4,15 @@ const useStore = defineStore({
   id: "store",
   state: () => {
     return {
-      server: "https://api.startgain.in/api/v1",      
-      // server: "http://localhost:8000/api/v1",      
+      // server: "https://api.startgain.in/api/v1",      
+      server: "http://localhost:8000/api/v1",      
       current_matches: null,
       match: null,
-      user: null
+      user: null,
+      page: null,
+      meta: {
+        loading: true
+      }
     }
   },
   getters: {        
@@ -29,8 +33,9 @@ const useStore = defineStore({
       const resp = await fetch(url, options);
       const data = await resp.json();      
       if (!resp.ok) {
-        localStorage.setItem("login", JSON.stringify({'state': "login_required"}))
-        localStorage.removeItem("credentials")
+        localStorage.setItem("login", JSON.stringify({'state': "login_required"}));
+        localStorage.removeItem("credentials");
+        window.location = '/login';
         return resp
       }
       // credentials.access_token = data.access_token;
@@ -43,15 +48,16 @@ const useStore = defineStore({
       const data = await resp.json();
 
       if (!resp.ok) {
-        if (data.code == 'token_not_valid') {
+        if (data.code) {
           let refrsh_resp = await this.refreshTokens();
           console.log(url, refrsh_resp);
-          if (refrsh_resp.ok && data.code != 'token_not_valid') {            
+          if (refrsh_resp.ok && !data.code) {            
             this.getCurrentMatches(url, options);                   
           }          
           else{
             localStorage.setItem("login", JSON.stringify({'state': "login_required"}))
             localStorage.removeItem('credentials');
+            window.location = '/login';
           }
         }
       }
@@ -87,7 +93,14 @@ const useStore = defineStore({
       this.user = data.data;      
       console.log(data)
       return data;
-    } 
+    }, 
+    async getPageDetails() {
+      const url = `${this.server}/page-details/`;
+      const data = await this.securedRequest(url, "GET");
+      this.page = data.data;      
+      console.log(data);
+      return data;
+    }
   },
 });
 

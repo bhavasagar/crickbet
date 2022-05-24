@@ -9,7 +9,7 @@ from django.conf import settings
 from django.utils.encoding import force_text, force_bytes
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from .models import Account, BallToBallRatio, BookMaker, Match, OverToOverRatio, Ratio, UserProfile, Score, MatchBet, TossBet, OverToOverBet, BookMakerBet, BallToBallBet, Recharge
+from .models import Account, BallToBallRatio, BookMaker, Match, OverToOverRatio, PageData, Ratio, UserProfile, Score, MatchBet, TossBet, OverToOverBet, BookMakerBet, BallToBallBet, Recharge
 
 
 class LoginSerializer(serializers.ModelSerializer):
@@ -339,4 +339,9 @@ class BookMakerSerializer(serializers.ModelSerializer):
 class RechargeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recharge
+        fields = "__all__"
+
+class PageDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PageData
         fields = "__all__"

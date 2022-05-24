@@ -4,16 +4,24 @@ import { ref } from "@vue/reactivity";
 import Header from "@/components/Header.vue";
 import { onMounted, onBeforeMount, onUnmounted, onBeforeUnmount } from "@vue/runtime-core";
 import userStore from "@/stores/store.js";
+import { useRouter } from "vue-router";
+import Loader from "@/components/Loader.vue";
+import formatDateTime from "@/helpers/FormatDateTime";
 
 const store = userStore();
+const router = useRouter();
 var fetch_matches
 
-onBeforeMount(() => {
+onBeforeMount(async () => {
     clearInterval(fetch_matches);
-    let data = store.getCurrentMatches();
+    await store.getCurrentMatches();
     fetch_matches = setInterval(() => {
-        let data = store.getCurrentMatches();
-    }, 60*1000)    
+        store.getCurrentMatches();
+    }, 60*1000);
+    const stored = localStorage.getItem("credentials");    
+    if (!stored) {
+        router.push({"name": 'Login'});
+    }    
 });
 
 onBeforeUnmount(() => {
@@ -45,12 +53,13 @@ console.log(store.current_matches);
 
 <template>
     <main>
+        <Loader v-if="store.current_matches ? store.meta.loading = false : store.meta.loading = true" />        
         <Header />
         <div class="container" v-if="store.current_matches">
             <router-link :to="{name: 'match_detail', params: {matchid: match.match_id} }" class="match--div px-3 py-2 block" :key="match.id" v-for="match in store.current_matches">
                 <div class="match--details flex flex-column">
                     <span class="flex flex-row justify-content-between " ><span class="match--name">{{match.match_name}}</span> <span class="dot green-dot"  :class="match.not_required && 'red-dot'" >  </span> </span>
-                    <span>{{match.date}}</span>
+                    <span>{{formatDateTime(match.date)}}</span>
                 </div>
                 <div class="match--ratios">
                     <div class="match-ratio text-center">

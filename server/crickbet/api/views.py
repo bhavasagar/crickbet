@@ -18,8 +18,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
 
-from .models import Account, BallToBallRatio, Bet, Match, OverToOverRatio, Score, TossBet, OverToOverBet, MatchBet, BookMakerBet, BallToBallBet, Recharge, UserProfile
-from .serializers import AccountSerializer, BallToBallRatioSerializer, BookMakerSerializer, ForgotPasswordSerializer, LoginSerializer, OverToOverRatioSerializer, ResetPasswordSerializer, UserProfileSerializer, UserRegisterSerializer, UserUpdateSerializer, MatchSerializer, BallToBallBetSerializer, OverToOverBetSerializer, TossBetSerializer, BookMakerBetSerializer, MatchBetSerializer, RechargeSerializer, ScoreSerializer
+from .models import Account, BallToBallRatio, Bet, Match, OverToOverRatio, PageData, Score, TossBet, OverToOverBet, MatchBet, BookMakerBet, BallToBallBet, Recharge, UserProfile
+from .serializers import AccountSerializer, BallToBallRatioSerializer, BookMakerSerializer, ForgotPasswordSerializer, LoginSerializer, OverToOverRatioSerializer, ResetPasswordSerializer, UserProfileSerializer, UserRegisterSerializer, UserUpdateSerializer, MatchSerializer, BallToBallBetSerializer, OverToOverBetSerializer, TossBetSerializer, BookMakerBetSerializer, MatchBetSerializer, RechargeSerializer, ScoreSerializer, PageDataSerializer
 from . import paytm
 
 class LoginView(GenericAPIView):
@@ -219,9 +219,7 @@ class CurrentMatchesAPI(APIView):
     permission_classes = (IsAuthenticated,)    
 
     def get(self, request):
-        matches = Match.objects.filter(not_required=False)
-        if not matches.exists():
-            return Response({"message": "There aren't any matches scheduled today."})
+        matches = Match.objects.filter(not_required=False)        
         data = []
         for match in matches:    
             match_data = get_match_data(match)
@@ -231,6 +229,8 @@ class CurrentMatchesAPI(APIView):
             match_data = get_match_data(match)
             data.append(match_data)
         print(data)
+        if data == []:
+            return Response({"message": "There aren't any matches scheduled today."})
         return Response({"data": data}, status=status.HTTP_200_OK)                
 
 class MatcheDetailAPI(APIView):
@@ -280,6 +280,14 @@ class UserDetailsAPI(APIView):
         account_serializer = AccountSerializer(account)        
         data.update(account_serializer.data)                
         return Response({"data": data}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def page_details(request):
+    page_details = PageData.objects.all().last()
+    if not page_details:
+        return Response({"data": {"heading": "IPL 2022", "scorll_text": "Lorem Ipsum text"}}, status=status.HTTP_200_OK)
+    return Response({"data": PageDataSerializer(page_details).data}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

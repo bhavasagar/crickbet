@@ -1,5 +1,5 @@
 from django.urls import path    
-from .views import CurrentMatchesAPI, LoginView, ResetPasswordView, ForgotPasswordView, UserRegisterView, UserUpdateView, EmailVerificationView, TossBetAPI, TossBetCreateAPI, MatchBetAPI, MatchBetCreateAPI, OverToOverBetAPI, OverToOverBetCreateAPI, BallToBallBetCreateAPI, BookMakerBetCreateAPI, BallToBallBetAPI, BookMakerBetAPI, start_payment, handle_payment, UserDetailsAPI, MatcheDetailAPI, get_user_pending_balance
+from .views import CurrentMatchesAPI, LoginView, ResetPasswordView, ForgotPasswordView, UserRegisterView, UserUpdateView, EmailVerificationView, TossBetAPI, TossBetCreateAPI, MatchBetAPI, MatchBetCreateAPI, OverToOverBetAPI, OverToOverBetCreateAPI, BallToBallBetCreateAPI, BookMakerBetCreateAPI, BallToBallBetAPI, BookMakerBetAPI, start_payment, handle_payment, UserDetailsAPI, MatcheDetailAPI, get_user_pending_balance, page_details
 
 bet_api = []
 
@@ -19,6 +19,8 @@ urlpatterns = [
     path('update-user/', UserUpdateView.as_view(), name='update'),
     path('verify-email/<uid>/<token>/', EmailVerificationView.as_view(), name='email_verification'),
     path('user-details/', UserDetailsAPI.as_view(), name='user_details'),    
+    
+    path('page-details/', page_details, name='page_details'),    
 
     # API endpoints related to matches
     path('current-matches/', CurrentMatchesAPI.as_view(), name='current_matches'),    

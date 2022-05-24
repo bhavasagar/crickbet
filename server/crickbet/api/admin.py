@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import UserProfile, Match, Score, MatchBet, Account, BookMaker, BallToBallScore, OverToOverBet, OverToOverScore, TossBet, Ratio, BookMakerBet, BallToBallBet, BallToBallRatio, OverToOverRatio
+from .models import UserProfile, Match, Score, MatchBet, Account, BookMaker, BallToBallScore, OverToOverBet, OverToOverScore, TossBet, Ratio, BookMakerBet, BallToBallBet, BallToBallRatio, OverToOverRatio, PageData
 
-models = [UserProfile, Score, MatchBet, Account, BookMaker, BallToBallScore, OverToOverBet, OverToOverScore, TossBet, Ratio, Match, BookMakerBet, BallToBallBet, BallToBallRatio, OverToOverRatio]
+models = [UserProfile, Score, MatchBet, Account, BookMaker, BallToBallScore, OverToOverBet, OverToOverScore, TossBet, Ratio, Match, BookMakerBet, BallToBallBet, BallToBallRatio, OverToOverRatio, PageData]
 
 for i in models:
     admin.site.register(i)

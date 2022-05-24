@@ -1,3 +1,5 @@
+from pyexpat import model
+from turtle import heading
 from django.db.models.signals import post_save
 from django.conf import settings
 from django.db import models
@@ -277,6 +279,9 @@ class Recharge(models.Model):
     def __str__(self) -> str:
         return f"Recharge - {self.user.username} - Rs.{self.amount}"
 
+class PageData(models.Model):
+    heading = models.CharField(max_length=100)
+    scroll_text = models.CharField(max_length=500)
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)        
 def userprofile_receiver(sender, instance, created, *args, **kwargs):
