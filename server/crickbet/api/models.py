@@ -1,5 +1,3 @@
-from pyexpat import model
-from turtle import heading
 from django.db.models.signals import post_save
 from django.conf import settings
 from django.db import models
