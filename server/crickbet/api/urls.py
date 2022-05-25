@@ -6,7 +6,7 @@ bet_api = []
 BET_CREATE_VIEWS = [ TossBetCreateAPI, MatchBetCreateAPI, OverToOverBetCreateAPI, BallToBallBetCreateAPI, BookMakerBetCreateAPI]
 
 for view in BET_CREATE_VIEWS:    
-    bet_api.append(path(f'{view.__name__[:-3].lower()}/', view.as_view(), name=f'{view.__name__[:-3].lower()}_create'))    
+    bet_api.append(path(f'{view.__name__[:-9].lower()}/', view.as_view(), name=f'{view.__name__[:-3].lower()}_create'))    
 
 urlpatterns = [
     # API endpoints related to user.

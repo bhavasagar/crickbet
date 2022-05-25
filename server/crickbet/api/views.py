@@ -258,9 +258,9 @@ class RechargeAPI(CreateAPIView):
 def Wallet_history_api(request):
     if request.method == 'GET':
         wallet_history = []
-        recharges = Recharge.objects.filter(user=request.user)
+        recharges = Recharge.objects.filter(user=request.user).order_by('-id')
         wallet_history += RechargeSerializer(recharges, many=True).data
-        withdrawls = WithDrawRequest.objects.filter(user=request.user)
+        withdrawls = WithDrawRequest.objects.filter(user=request.user).order_by('-id')
         wallet_history += WithDrawSerializer(withdrawls, many=True).data        
         return Response({"data": wallet_history}, status=status.HTTP_200_OK)    
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -290,16 +290,16 @@ def withdraw_request(request):
 def bet_history(request):
     if request.method == "GET":        
         bet_history = []
-        bets = MatchBet.objects.filter(user=request.user)
+        bets = MatchBet.objects.filter(user=request.user).order_by('-id')
         bet_history += MatchBetSerializer(bets, many=True).data
         # print(bet_history, request.user)
-        bets = OverToOverBet.objects.filter(user=request.user)        
+        bets = OverToOverBet.objects.filter(user=request.user).order_by('-id')        
         bet_history += OverToOverBetSerializer(bets, many=True).data
-        bets = BallToBallBet.objects.filter(user=request.user)
+        bets = BallToBallBet.objects.filter(user=request.user).order_by('-id')
         bet_history += BallToBallBetSerializer(bets, many=True).data    
-        bets = BookMakerBet.objects.filter(user=request.user)
+        bets = BookMakerBet.objects.filter(user=request.user).order_by('-id')
         bet_history += BookMakerBetSerializer(bets, many=True).data            
-        bets = TossBet.objects.filter(user=request.user)        
+        bets = TossBet.objects.filter(user=request.user).order_by('-id')        
         bet_history += TossBetSerializer(bets, many=True).data                    
         return Response({"data": bet_history}, status=status.HTTP_200_OK)    
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)

@@ -4,14 +4,18 @@ import backgroundImage from "@/assets/ground.jpg"
 import { onMounted, onBeforeMount, onUnmounted, ref, reactive, onBeforeUnmount } from "@vue/runtime-core";
 import userStore from "@/stores/store.js";
 import { useRoute } from "vue-router";
+import {ToastSeverity} from 'primevue/api';
+import { useToast } from "primevue/usetoast"; 
 import Loader from "@/components/Loader.vue";
 
 import formatDateTime from "@/helpers/FormatDateTime";
+import Toast from "primevue/toast";
 
+const toast = useToast();
 const route = useRoute();
-var fetch_matches
 const store = userStore();
 const placebet = ref(false);
+var fetch_matches;
 const bet_details = reactive({
     invested_on: null,
     bet_amount: 500,
@@ -61,10 +65,11 @@ const handleClick = (invested_on, ratio_invested, type, over_num=null, ball_num=
     console.log(ratio_invested)
 }
 
-const handleBetSubmission = () => {
+const handleBetSubmission = async () => {
     console.log(bet_details)
     if (bet_details.type=='toss') {
         if (store.match.tossbet_ratio.blocked) return;
+        if (bet_details.bet_amount < 100) return;
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
         console.log(access_token);
         const url = `${store.server}/tossbet/`;
@@ -79,14 +84,17 @@ const handleBetSubmission = () => {
                                 "ratio_invested": 2
                                 })
         }
-        const data = store.request(url, options)
+        const data = await store.request(url, options)
         console.log(data)
         if (data.id) {
             console.log("success");
+            toast.add({severity: ToastSeverity.SUCCESS, summary: `Bet Placed with amount ${bet_details.bet_amount}`, detail: `Invested on ${bet_details.invested_on}`, life: 3000});
+            store.getUserDetails();
         }
     }
     else if (bet_details.type=='match') {
         if (store.match.gold.blocked || store.match.diamond.blocked) return;
+        if (bet_details.bet_amount < 200) return;
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
         console.log(access_token);
         const url = `${store.server}/matchbet/`;
@@ -101,13 +109,16 @@ const handleBetSubmission = () => {
                                 "ratio_invested": bet_details.ratio_invested
                                 })
         }        
-        const data = store.request(url, options)
+        const data = await store.request(url, options)
         console.log(data)
         if (data.id) {
             console.log("success");
+            toast.add({severity: ToastSeverity.SUCCESS, summary: `Bet Placed with amount ${bet_details.bet_amount}`, detail: `Invested on ${bet_details.invested_on}`, life: 3000});
+            store.getUserDetails();
         }
     }
     else if (bet_details.type=='over') {
+        if (bet_details.bet_amount < 100) return;
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
         console.log(access_token);
         const url = `${store.server}/overtooverbet/`;
@@ -124,13 +135,16 @@ const handleBetSubmission = () => {
                                 "team": store.match.batting_team
                                 })
         }
-        const data = store.request(url, options)
+        const data = await store.request(url, options)
         console.log(data)
         if (data.id) {
             console.log("success");
+            toast.add({severity: ToastSeverity.SUCCESS, summary: `Bet Placed with amount ${bet_details.bet_amount}`, detail: `Invested on ${bet_details.invested_on}`, life: 3000});
+            store.getUserDetails();
         }
     }    
     else if (bet_details.type=='ball') {
+        if (bet_details.bet_amount < 50) return;
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
         console.log(access_token);
         const url = `${store.server}/balltoballbet/`;
@@ -147,13 +161,16 @@ const handleBetSubmission = () => {
                                 "team": store.match.batting_team
                                 })
         }
-        const data = store.request(url, options)
+        const data = await store.request(url, options)
         console.log(data)
         if (data.id) {
             console.log("success");
+            toast.add({severity: ToastSeverity.SUCCESS, summary: `Bet Placed with amount ${bet_details.bet_amount}`, detail: `Invested on ${bet_details.invested_on}`, life: 3000});
+            store.getUserDetails();
         }
     }
     else if (bet_details.type=='bookmaker') {
+        if (bet_details.bet_amount < 100) return;
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
         console.log(access_token);
         const url = `${store.server}/bookmakerbet/`;
@@ -169,12 +186,15 @@ const handleBetSubmission = () => {
                                 "bookmaker_id": bet_details.bookmaker_id                              
                                 })
         }
-        const data = store.request(url, options)
+        const data = await store.request(url, options)
         console.log(data)
         if (data.id) {
             console.log("success");
+            toast.add({severity: ToastSeverity.SUCCESS, summary: `Bet Placed with amount ${bet_details.bet_amount}`, detail: `Invested on ${bet_details.invested_on}`, life: 3000});
+            store.getUserDetails();
         }
     }
+    bet_details.bet_amount = null;
     placebet.value = false;
 }
 
@@ -182,6 +202,7 @@ const handleBetSubmission = () => {
 
 <template>
     <main>
+        <Toast />
         <Loader v-if="store.match ? store.meta.loading = false : store.meta.loading = true" />        
         <Header />
         <div class="container" v-if="store.match" >
