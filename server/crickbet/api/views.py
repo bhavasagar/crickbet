@@ -18,8 +18,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
 
-from .models import Account, BallToBallRatio, Bet, Match, OverToOverRatio, PageData, Score, TossBet, OverToOverBet, MatchBet, BookMakerBet, BallToBallBet, Recharge, UserProfile, WithDrawRequest
-from .serializers import AccountSerializer, BallToBallRatioSerializer, BookMakerSerializer, ForgotPasswordSerializer, LoginSerializer, OverToOverRatioSerializer, ResetPasswordSerializer, UserProfileSerializer, UserRegisterSerializer, UserUpdateSerializer, MatchSerializer, BallToBallBetSerializer, OverToOverBetSerializer, TossBetSerializer, BookMakerBetSerializer, MatchBetSerializer, RechargeSerializer, ScoreSerializer, PageDataSerializer, WithDrawSerializer
+from .models import Account, BallToBallRatio, Bet, ManualRechargeUPI, Match, OverToOverRatio, PageData, Score, TossBet, OverToOverBet, MatchBet, BookMakerBet, BallToBallBet, Recharge, UserProfile, WithDrawRequest
+from .serializers import AccountSerializer, BallToBallRatioSerializer, BookMakerSerializer, ForgotPasswordSerializer, LoginSerializer, ManualRechargeUPISerializer, OverToOverRatioSerializer, ResetPasswordSerializer, UserProfileSerializer, UserRegisterSerializer, UserUpdateSerializer, MatchSerializer, BallToBallBetSerializer, OverToOverBetSerializer, TossBetSerializer, BookMakerBetSerializer, MatchBetSerializer, RechargeSerializer, ScoreSerializer, PageDataSerializer, WithDrawSerializer
 from . import paytm
 
 class LoginView(GenericAPIView):
@@ -312,6 +312,14 @@ def page_details(request):
         if not page_details:
             return Response({"data": {"heading": "IPL 2022", "scroll_text": "Lorem Ipsum text"}}, status=status.HTTP_200_OK)
         return Response({"data": PageDataSerializer(page_details).data}, status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def upi_details(request):
+    if request.method == "GET":
+        recharge_details = ManualRechargeUPI.objects.all().last()        
+        return Response({"data": ManualRechargeUPISerializer(recharge_details).data}, status=status.HTTP_200_OK)
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 

@@ -40,10 +40,22 @@ onBeforeMount(() => {
 const v$ = useVuelidate(rules, userdata)
 
 const submitted  = ref(false);
+const upi = ref(null);
 
 onMounted(() => {
     handleNotifications(toast);        
 });
+
+onBeforeMount(async () => {
+    const access_token = JSON.parse(localStorage.getItem("credentials") || '{}')?.access_token;
+    const options = {
+        method: "GET",
+        headers: new Headers({"Authorization": `Bearer ${access_token}`})
+    };            
+    const resp = await fetch(`${store.server}/upi/`, options);    
+    const data = await resp.json();
+    upi.value = data.data;
+})
 
 const sendRequest = async () => {
     // console.log(proof.files, proof.files[0]);
@@ -77,6 +89,10 @@ const sendRequest = async () => {
     }
 } 
 
+const copy = () => {        
+    navigator.clipboard.writeText(upi.value.upi_id);
+}
+
 const handleProof = event => {
     console.log(event.target, event.target.files);
     userdata.image = event.target.files[0];
@@ -106,6 +122,13 @@ const handleSubmit = async (isFormValid) => {
                 <div class="container">                    
                     <div class="card">                                        
                         <form @submit.prevent="handleSubmit(!v$.$invalid)">
+                            <div class="p-inputgroup mb-4" @click="copy">
+                                <InputText class="w-full " v-model="upi.upi_id"  disabled />
+                                <span class="p-inputgroup-addon" >
+                                    <i class="pi pi-copy"></i>
+                                </span>
+                            </div> 
+
                             <div class="p-inputgroup my-2">
                                 <span class="p-inputgroup-addon">
                                     <i class="pi pi-database"></i>
@@ -119,20 +142,18 @@ const handleSubmit = async (isFormValid) => {
                             </span>
                             <small v-else-if="(v$.amount.$invalid && submitted) || v$.amount.$pending.$response" class="p-error">{{v$.amount.required.$message.replace('Value', 'amount')}}</small>
 
-
-                            <!-- <div class="p-inputgroup my-2">
-                                <input class="form-control" type="file" size="60" name="proof" @change="handleProof">                                
-                            </div> -->
+                           
                             <div class="file--input my-3 flex justify-content-center card-container blue-container border-dashed border-black-500 p-3  surface-overlay ">
                                 <label for="proof" class=" font-semibold border " > Proof of Payment </label>
                                 <input class="form-control" type="file" id="proof" name="proof" @change="handleProof">
                             </div>
-                            <!-- <FileUpload ref="proof" @change="handleProof" name="Proof" class="mt-2 w-full surface-900 outline-none"   mode="basic" :maxFileSize="1000000" required="true" />                                                                              -->
-                            <!-- <InputText class="w-full " type="file" v-model="v$.amount.$model" placeholder="Amount" /> -->
                             
-                            <Button type="submit"  label="Recharge" class="p-button p-button-custom mt-2"  />                                
-                        </form>                  
+                            <Button type="submit"  label="Recharge" class="p-button p-button-custom mt-2"  />                                                            
+                        </form>                                          
                     </div>
+                </div>
+                <div class="img--details" style="width: 10rem; margin: 2rem auto;">
+                    <img :src="store.server + '/../..' + upi.qr_code" style="width: 100%; height: 100%" alt="">
                 </div>
             </div>
         </section>  

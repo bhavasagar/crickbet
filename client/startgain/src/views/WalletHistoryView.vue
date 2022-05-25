@@ -29,7 +29,7 @@ onBeforeMount(async () => {
     method: "GET",
     headers: new Headers({"Authorization": `Bearer ${access_token}`})
     };            
-    const resp = await fetch(`${store.server}/wallet-history/  `, options);    
+    const resp = await fetch(`${store.server}/wallet-history/`, options);    
     const data = await resp.json();
     wallet_history.value = data.data;
     console.log(wallet_history, data);

@@ -1,5 +1,5 @@
 from django.urls import path    
-from .views import CurrentMatchesAPI, LoginView, RechargeAPI, ResetPasswordView, ForgotPasswordView, UserRegisterView, UserUpdateView, EmailVerificationView, TossBetCreateAPI, MatchBetCreateAPI, OverToOverBetCreateAPI, BallToBallBetCreateAPI, BookMakerBetCreateAPI, Wallet_history_api, bet_history, start_payment, handle_payment, UserDetailsAPI, MatcheDetailAPI, get_user_pending_balance, page_details, withdraw_request
+from .views import CurrentMatchesAPI, LoginView, RechargeAPI, ResetPasswordView, ForgotPasswordView, UserRegisterView, UserUpdateView, EmailVerificationView, TossBetCreateAPI, MatchBetCreateAPI, OverToOverBetCreateAPI, BallToBallBetCreateAPI, BookMakerBetCreateAPI, Wallet_history_api, bet_history, start_payment, handle_payment, UserDetailsAPI, MatcheDetailAPI, get_user_pending_balance, page_details, upi_details, withdraw_request
 
 bet_api = []
 
@@ -19,6 +19,7 @@ urlpatterns = [
     path('user-details/', UserDetailsAPI.as_view(), name='user_details'),    
     path('bet-history/', bet_history, name='bet_history'),    
     path('wallet-history/', Wallet_history_api, name='Wallet_history'),        
+    path('upi/', upi_details, name='upi'),        
     
     path('page-details/', page_details, name='page_details'),    
 
