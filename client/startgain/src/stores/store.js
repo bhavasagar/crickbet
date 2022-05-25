@@ -19,7 +19,9 @@ const useStore = defineStore({
   },
   actions: {
     async refreshTokens() {
-      const credentials = JSON.parse(localStorage.getItem('credentials') || '{}');
+      console.log("in ref");
+      let credentials = JSON.parse(localStorage.getItem('credentials') || '{}');
+      console.log(credentials);
       const refresh_token = credentials?.refresh_token
       const url = `${this.server}/refresh/`;
       console.log(credentials)
@@ -30,17 +32,19 @@ const useStore = defineStore({
         redirect: 'follow'
       }
       console.log(options, url);
-      const resp = await fetch(url, options);
-      const data = await resp.json();      
+      const resp = await fetch(url, options);           
       if (!resp.ok) {
         localStorage.setItem("login", JSON.stringify({'state': "login_required"}));
         localStorage.removeItem("credentials");
         window.location = '/login';
         return resp
       }
-      // credentials.access_token = data.access_token;
-      // credentials.refresh_token = data.refresh_token;
-      // localStorage.setItem("credentials", JSON.stringify(credentials))
+
+      const data = await resp.json();
+
+      credentials = {access_token: data.access_token, refresh_token: data.refresh_token};
+      localStorage.setItem("credentials", JSON.stringify(credentials));
+        
       return resp
     },
     async request(url, options)  {
@@ -49,9 +53,11 @@ const useStore = defineStore({
 
       if (!resp.ok) {
         if (data.code) {
-          let refrsh_resp = await this.refreshTokens();
-          console.log(url, refrsh_resp);
-          if (refrsh_resp.ok && !data.code) {            
+          console.log("ref");
+          let refresh_resp = await this.refreshTokens();
+          console.log(url, refresh_resp);
+          if (refresh_resp.ok) {            
+            console.log(refresh_resp);                      
             this.getCurrentMatches(url, options);                   
           }          
           else{
@@ -65,7 +71,7 @@ const useStore = defineStore({
       console.log(data);
       return data;
     },
-    async securedRequest(url, method) {
+    async securedRequest(url, method="GET") {
       const access_token = JSON.parse(localStorage.getItem("credentials") || '{}')?.access_token;
       const options = {
         method: method,

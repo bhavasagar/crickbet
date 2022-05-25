@@ -8,7 +8,11 @@ import ForgotPasswordView from "../views/ForgotPasswordView.vue";
 import ResetPasswordView from "../views/ResetPasswordView.vue";
 import ComingSoonView from "../views/ComingSoonView.vue";
 import LogoutView from "../views/LogoutView.vue";
-import useStore from "../stores/store";
+import RechargeView from "../views/Recharge.vue";
+import WithDrawView from "../views/WithDraw.vue";
+import BetHistoryView from "../views/BetHistoryView.vue";
+import WalletHistoryView from "../views/WalletHistoryView.vue";
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,6 +29,38 @@ const router = createRouter({
       path: "/match/:matchid",
       name: "match_detail",
       component: MatchDetailView,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/recharge",
+      name: "recharge",
+      component: RechargeView,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/withdraw",
+      name: "withdraw",
+      component: WithDrawView,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/bet-history",
+      name: "bet_history",
+      component: BetHistoryView,
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: "/wallet-history",
+      name: "wallet_history",
+      component: WalletHistoryView,
       meta: {
         requiresAuth: true
       }

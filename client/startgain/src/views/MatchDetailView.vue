@@ -20,7 +20,8 @@ const bet_details = reactive({
     over_num: null,
     ball_num: null,
     bookmaker_id: null,
-    blocked: false
+    blocked: false,
+    min: 50
 })
 
 onBeforeMount(() => {
@@ -41,8 +42,22 @@ const handleClick = (invested_on, ratio_invested, type, over_num=null, ball_num=
     bet_details.type = type;
     bet_details.over_num = over_num;
     bet_details.ball_num = ball_num;
-    bet_details.bookmaker_id = bookmaker_id;
+    bet_details.bookmaker_id = bookmaker_id;    
     placebet.value = true;
+
+    switch(type){
+        case "toss":
+        case "bookmaker":
+        case "over":
+            bet_details.min = 100
+            break         
+        case "match":
+            bet_details.min = 200
+            break                       
+        case "ball":
+            bet_details.min = 50        
+    }
+
     console.log(ratio_invested)
 }
 
@@ -210,19 +225,22 @@ const handleBetSubmission = () => {
                         </span>
                     </div>
                 </div>
-                <div class="toss-winner flex flex-row justify-content-start ml-2 font-bold">
-                    <span class="font-bold" >Toss Winner</span> <span class="mx-2">-</span> <span class="font-bold" v-if="store.match.toss_winning_team" > {{ store.match.toss_winning_team }} </span><span class="font-bold" v-else> N/A </span>
+                <div class="toss-winner flex flex-row justify-content-start ml-2 font-bold" v-if="store.match.toss_winning_team">
+                    <span class="font-bold" >Toss Winner</span> <span class="mx-2">-</span> <span class="font-bold" v-if="store.match.toss_winning_team"> {{ store.match.toss_winning_team }} </span><span class="font-bold" v-else> N/A </span>
+                </div>
+                <div class="toss-winner flex flex-row justify-content-start ml-2 font-bold" v-if="store.match.match_winning_team">
+                    <span class="font-bold" >Match Winner</span> <span class="mx-2">-</span> <span class="font-bold"  v-if="store.match.match_winning_team" > {{ store.match.match_winning_team }} </span><span class="font-bold" v-else> N/A </span>
                 </div>
             </div>
             
-            <Dialog class="p-dialog" header="INVEST" :key="header" v-model:visible="placebet" >
-                <div class="bet--details flex flex-row justify-content-between p-2 mx-1 my-3 ">
-                    <span class="team--name">{{bet_details.invested_on}}</span>
-                    <span class="ratio--bet">{{bet_details.ratio_invested}}</span>
+            <Dialog class="p-dialog" header="INVEST" :key="header" v-model:visible="placebet"  >
+                <div class="bet--details flex flex-row justify-content-between mx-1 my-3 "  >
+                    <span class="font-bold">{{bet_details.invested_on}}</span> 
+                    <span class="font-bold mr-3" >{{bet_details.ratio_invested}}</span>
                 </div>                
-                <form @submit.prevent="handleBetSubmission" class="amount flex flex-row justify-content-between p-2 mx-1 my-3 align-content-center" >
-                    <InputNumber style="height: 2.6rem" v-model="bet_details.bet_amount" />
-                    <Button type="submit"  label="Submit" class="p-button p-button-custom ml-2"  />    
+                <form @submit.prevent="handleBetSubmission" class="amount flex flex-row justify-content-between mx-1 my-3 align-items-center" >
+                    <InputNumber style="height: 100%;" class="mx-1 p-inputtext-sm" :min="bet_details.min" v-model="bet_details.bet_amount" />
+                    <Button type="submit"  label="Submit" style="height: 2rem; font-size: 1rem !important;width: fit-content !important; border-radius: 1.5px !important;" class="p-button p-button-custom ml-2"  />    
                 </form>                
             </Dialog>
 
@@ -236,7 +254,7 @@ const handleBetSubmission = () => {
                     <div class="details--bet">
                         <div class="flex flex-row">
                             <div class="min-max--bet span-2-col" style="width: 70%">
-                                <span class="mr-2">Min: 500</span>
+                                <span class="mr-2">Min: 100</span>
                                 <span>Max: 500000</span>
                             </div>                        
                             <div class="ratio--bet back-bet" style="width: 30%" >
@@ -280,7 +298,7 @@ const handleBetSubmission = () => {
                     <div class="details--bet">
                         <div class="flex flex-row">
                             <div class="min-max--bet span-2-col">
-                                <span class="mr-2">Min: 500</span>
+                                <span class="mr-2">Min: 200</span>
                                 <span>Max: 500000</span>
                             </div>                        
                             <div class="ratio--bet back-bet">
@@ -330,7 +348,7 @@ const handleBetSubmission = () => {
                     <div class="details--bet">
                         <div class="flex flex-row">
                             <div class="min-max--bet span-2-col">
-                                <span class="mr-2">Min: 500</span>
+                                <span class="mr-2">Min: 100</span>
                                 <span>Max: 500000</span>
                             </div>                        
                             <div class="ratio--bet back-bet">
@@ -367,7 +385,7 @@ const handleBetSubmission = () => {
                     <div class="details--bet">
                         <div class="flex flex-row">
                             <div class="min-max--bet span-2-col">
-                                <span class="mr-2">Min: 500</span>
+                                <span class="mr-2">Min: 100</span>
                                 <span>Max: 500000</span>
                             </div>                        
                             <div class="ratio--bet back-bet">
@@ -382,7 +400,7 @@ const handleBetSubmission = () => {
                             <div class="flex flex-row" v-if=" parseFloat(store.match.current_over)+1 < parseFloat(over.over_num)" >
                                 <div class="team--name py-2 px-1 span-2-col align-self-center flex flex-column">
                                     <span>
-                                        Over {{over.over_num}}
+                                        Over {{ parseFloat(over.over_num) + 1 }}
                                     </span>
                                     <span style="padding: 0; margin: 0; font-size: 0.8rem; font-weight: 400">
                                         runs greater than {{over.expected_runs}}
@@ -408,7 +426,7 @@ const handleBetSubmission = () => {
                     <div class="details--bet">
                         <div class="flex flex-row">
                             <div class="min-max--bet span-2-col">
-                                <span class="mr-2">Min: 500</span>
+                                <span class="mr-2">Min: 50</span>
                                 <span>Max: 500000</span>
                             </div>                        
                             <div class="ratio--bet back-bet">
@@ -422,7 +440,7 @@ const handleBetSubmission = () => {
                             <div class="flex flex-row" v-if=" parseFloat(store.match.current_over)+1 < parseFloat(ball_ratio.ball_num)" >
                                 <div class="team--name py-2 px-1 span-2-col align-self-center flex flex-column">
                                     <span>
-                                        Ball {{ball_ratio.ball_num}}
+                                        Ball {{parseFloat(ball_ratio.ball_num)+1}}
                                     </span>
                                     <span style="padding: 0; margin: 0; font-size: 0.8rem; font-weight: 400">
                                         runs greater than {{ball_ratio.expected_runs}}
@@ -517,9 +535,11 @@ const handleBetSubmission = () => {
 .match-score-header{
     color: #fff;
 }
+.p-button > span{
+    font-weight: 600;
+}
 </style>
-
-<style>
+<style >
 .p-dialog-mask{
     width: 100vw !important;
     height: 100vh !important;
@@ -536,9 +556,13 @@ const handleBetSubmission = () => {
     box-shadow: none !important;  
     width: 95% !important;
 }
+.p-dialog-content {
+    background: #eee !important;
+    padding: 0.25rem !important;
+}
 .p-button-custom {
     background: rgb(21, 21, 21);    
-    width: 99%;
+    width: auto !important;
     margin: 0.5rem auto;
     border-radius: 5px;
     font-size: 1.1rem;

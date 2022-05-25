@@ -1,4 +1,5 @@
 from email import message
+from email.policy import default
 from lib2to3.pgen2 import token
 from rest_framework import serializers, exceptions
 from django.contrib.auth.models import User
@@ -9,7 +10,7 @@ from django.conf import settings
 from django.utils.encoding import force_text, force_bytes
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from .models import Account, BallToBallRatio, BookMaker, Match, OverToOverRatio, PageData, Ratio, UserProfile, Score, MatchBet, TossBet, OverToOverBet, BookMakerBet, BallToBallBet, Recharge
+from .models import Account, BallToBallRatio, BookMaker, Match, OverToOverRatio, PageData, Ratio, UserProfile, Score, MatchBet, TossBet, OverToOverBet, BookMakerBet, BallToBallBet, Recharge, WithDrawRequest
 
 
 class LoginSerializer(serializers.ModelSerializer):
@@ -306,39 +307,58 @@ class BallToBallRatioSerializer(serializers.ModelSerializer):
         return response 
 
 class MatchBetSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField()
+
     class Meta:
         model = MatchBet
         fields = "__all__"
 
 class BallToBallBetSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField()
+
     class Meta:
         model = BallToBallBet
         fields = "__all__"
         
 
 class TossBetSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField()
+
     class Meta:
         model = TossBet
         fields = "__all__"
 
 class OverToOverBetSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField()
+
     class Meta:
         model = OverToOverBet
         fields = "__all__"
 
 class BookMakerBetSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField()
+
     class Meta:
         model = BookMakerBet
         fields = "__all__"
 
 class BookMakerSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField()
+    
     class Meta:
         model = BookMaker
         fields = "__all__"
 
 class RechargeSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField(default="R")
     class Meta:
         model = Recharge
+        fields = "__all__"
+
+class WithDrawSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField(default="W")
+    class Meta:
+        model = WithDrawRequest
         fields = "__all__"
 
 class PageDataSerializer(serializers.ModelSerializer):

@@ -35,9 +35,24 @@ const items = [
 					to: '/'
 				},						
 				{
-                    label: 'History',
+                    label: 'Recharge',
+                    icon: 'pi pi-money-bill',
+                    to: '/recharge'
+                },
+				{
+                    label: 'Withdraw',
                     icon: 'pi pi-upload',
-                    to: '/'
+                    to: '/withdraw'
+                },
+				{
+                    label: 'Bet History',
+                    icon: 'pi pi-history',
+                    to: '/bet-history'
+                },
+				{
+                    label: 'Wallet History',
+                    icon: 'pi pi-wallet',
+                    to: '/wallet-history'
                 },
                 {
                     label: 'Logout',

@@ -38,7 +38,7 @@ if not DEBUG:
 API_KEY = 'IVtirDdCNT3HaYBIL7IloKQ5EunDRy5qYjnyqvqh5Rrhu1zg6eXiIZette18'
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=240),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,

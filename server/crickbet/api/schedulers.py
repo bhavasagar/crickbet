@@ -72,7 +72,7 @@ class FetchMatchesList:
         return db_match
 
     def _set_score(self, score, db_match, team, item_no):
-        from .models import Score
+        from .models import Score        
         score_c, _ = last_or_create(Score, match=db_match, team=team)         
         score_c.runs = score[item_no]['total']
         score_c.wickets = score[item_no]['wickets']
@@ -93,11 +93,11 @@ class FetchMatchesList:
             item_num = -1
         print(batting_team)
         over_num = int(score[item_num]['overs'])               
-        if over_num > 0:
-            if not OverToOverRatio.objects.filter(match=db_match, team=batting_team, over_num=over_num+2).exists():
+        if over_num >= 0:
+            if not OverToOverRatio.objects.filter(match=db_match, team=batting_team, over_num=over_num+1).exists() and ((over_num+1 < 20) and ('T20' in db_match.type) ):
                 print("creating o2o bets")
                 ratio = Ratio.objects.create(ratio_a=1.2, ratio_b=1.2)
-                OverToOverRatio.objects.create(match=db_match, ratio=ratio, team=batting_team, over_num=over_num+2)
+                OverToOverRatio.objects.create(match=db_match, ratio=ratio, team=batting_team, over_num=over_num+1)
             over_previous_bets = OverToOverBet.objects.filter(match=db_match, over_num__lte=over_num, paid=False)
             all_b2b_data = self._request("GET",self.ball2ballscore_url)            
             # Filter current match b2b data           
@@ -202,7 +202,8 @@ class FetchMatchesList:
 
                 #  After distributing the money to all bets.
                 db_match.not_required = True
-
+            if match.get('status'):
+                db_match.status = match['status']
             db_match.save()                                  
 
 

@@ -151,12 +151,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = 'media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+TIME_ZONE = 'UTC'
 
 TEMPLATES = [
     {
@@ -175,5 +177,6 @@ TEMPLATES = [
 ]
 
 STATIC_ROOT = '/home/circkbet/crickbet/server/crickbet/static'  
+MEDIA_ROOT = '/home/circkbet/crickbet/server/crickbet/media'  
 
 print(STATIC_ROOT)

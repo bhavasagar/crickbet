@@ -37,7 +37,7 @@ onBeforeMount(() => {
 .loader{
   width: 5rem;
   height: 5rem;
-  border: 1rem solid #4b4949;
+  border: 0.5rem solid #868686;
   border-top-color: #000;
   animation: rotate 1s cubic-bezier(0.165, 0.84, 0.44, 1) 500ms infinite;
   border-radius: 50%;

@@ -26,6 +26,7 @@ onBeforeMount(async () => {
 
 onBeforeUnmount(() => {
     clearInterval(fetch_matches);
+    store.match = null;
 });
 
 class Game{

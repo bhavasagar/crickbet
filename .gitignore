@@ -9,7 +9,7 @@ lerna-debug.log*
 
 **/node_modules/**
 **/static/**
-migrations/**
+**/migrations/**
 .DS_Store
 dist
 dist-ssr

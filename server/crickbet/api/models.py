@@ -1,3 +1,4 @@
+from distutils.command.upload import upload
 from django.db.models.signals import post_save
 from django.conf import settings
 from django.db import models
@@ -223,6 +224,10 @@ class MatchBet(Bet):
     def __str__(self) -> str:
         return f"{self.user.username} - MatchBet - Rs.{self.amount_invested}"        
 
+    @property
+    def type(self):
+        return "match"
+
 class OverToOverBet(Bet):    
     over_num = models.FloatField() 
     team = models.CharField(max_length=50)
@@ -230,6 +235,10 @@ class OverToOverBet(Bet):
 
     def __str__(self) -> str:
         return f"{self.user.username} - OverBet - Rs.{self.amount_invested}"      
+    
+    @property
+    def type(self):
+        return "over"
 
 class BallToBallBet(Bet):    
     ball_num = models.FloatField() 
@@ -237,7 +246,11 @@ class BallToBallBet(Bet):
     ratio_invested = models.FloatField()
 
     def __str__(self) -> str:
-        return f"{self.user.username} - Ball2Ball - Rs.{self.amount_invested}"      
+        return f"{self.user.username} - Ball2Ball - Rs.{self.amount_invested}"  
+
+    @property
+    def type(self):
+        return "ball"    
     
     def save(self, *args, **kwargs):
         self.ball_num = get_ball_num(self.ball_num)
@@ -250,25 +263,44 @@ class BookMakerBet(Bet):
     def __str__(self) -> str:
         return f"{self.user.username} - BookMakerBet - Rs.{self.amount_invested}"  
 
+    @property
+    def type(self):
+        return "bookmaker"
+
 class TossBet(Bet):    
     ratio_invested = models.FloatField()
     
     def __str__(self) -> str:
         return f"{self.user.username} - TossBet - Rs.{self.amount_invested}"  
+    
+    @property
+    def type(self):
+        return "toss"
 
 class WithDrawRequest(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     amount = models.CharField(default=False, max_length=15)
     upi_id = models.CharField(default=False, max_length=35)
     paid = models.BooleanField(default=False)  
-    made_on = models.DateTimeField(auto_now_add=True)  
+    made_on = models.DateTimeField()  
 
     def __str__(self):
         return f'{self.amount} - {self.upi_id}'
+    
+    def save(self, *args, **kwargs):
+        self.made_on = datetime.now()
+        return super().save(*args, **kwargs)
 
+class ManualRechargeUPI(models.Model):
+    upi_id = models.CharField(max_length=100)
+    qr_code = models.ImageField(upload_to="Images/")
+
+    def __str__(self) -> str:
+        return self.upi_id
 
 class Recharge(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    proof = models.ImageField(upload_to="Images/", blank=True, null=True)
     amount = models.FloatField()
     mode = models.CharField(max_length=10)
     made_on = models.DateTimeField(auto_now=True)
