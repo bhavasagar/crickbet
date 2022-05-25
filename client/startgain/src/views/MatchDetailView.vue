@@ -67,9 +67,13 @@ const handleClick = (invested_on, ratio_invested, type, over_num=null, ball_num=
 
 const handleBetSubmission = async () => {
     console.log(bet_details)
+    if (store.user.balance < bet_details.bet_amount){
+        toast.add({severity: ToastSeverity.WARN, summary: "Insufficient Balance", detail: "Please recharge to place bet."})
+        return;
+    }
     if (bet_details.type=='toss') {
         if (store.match.tossbet_ratio.blocked) return;
-        if (bet_details.bet_amount < 100) return;
+        if (bet_details.bet_amount < 100) return;        
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
         console.log(access_token);
         const url = `${store.server}/tossbet/`;
@@ -92,9 +96,13 @@ const handleBetSubmission = async () => {
             store.getUserDetails();
         }
     }
+    if (store.user.balance < bet_details.bet_amount){
+        toast.add({severity: ToastSeverity.WARN, summary: "Insufficient Balance", detail: "Please recharge to place bet."})
+        return;
+    }
     else if (bet_details.type=='match') {
         if (store.match.gold.blocked || store.match.diamond.blocked) return;
-        if (bet_details.bet_amount < 200) return;
+        if (bet_details.bet_amount < 200) return;        
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
         console.log(access_token);
         const url = `${store.server}/matchbet/`;
@@ -116,9 +124,13 @@ const handleBetSubmission = async () => {
             toast.add({severity: ToastSeverity.SUCCESS, summary: `Bet Placed with amount ${bet_details.bet_amount}`, detail: `Invested on ${bet_details.invested_on}`, life: 3000});
             store.getUserDetails();
         }
+        if (store.user.balance < bet_details.bet_amount){
+        toast.add({severity: ToastSeverity.WARN, summary: "Insufficient Balance", detail: "Please recharge to place bet."})
+        return;
+    }
     }
     else if (bet_details.type=='over') {
-        if (bet_details.bet_amount < 100) return;
+        if (bet_details.bet_amount < 100) return;        
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
         console.log(access_token);
         const url = `${store.server}/overtooverbet/`;
@@ -144,7 +156,11 @@ const handleBetSubmission = async () => {
         }
     }    
     else if (bet_details.type=='ball') {
-        if (bet_details.bet_amount < 50) return;
+        if (bet_details.bet_amount < 50)  return;
+        if (store.user.balance < bet_details.bet_amount){
+            toast.add({severity: ToastSeverity.WARN, summary: "Insufficient Balance", detail: "Please recharge to place bet."})
+            eturn;
+        }
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
         console.log(access_token);
         const url = `${store.server}/balltoballbet/`;
@@ -168,9 +184,13 @@ const handleBetSubmission = async () => {
             toast.add({severity: ToastSeverity.SUCCESS, summary: `Bet Placed with amount ${bet_details.bet_amount}`, detail: `Invested on ${bet_details.invested_on}`, life: 3000});
             store.getUserDetails();
         }
+        if (store.user.balance < bet_details.bet_amount){
+        toast.add({severity: ToastSeverity.WARN, summary: "Insufficient Balance", detail: "Please recharge to place bet."})
+        return;
+    }
     }
     else if (bet_details.type=='bookmaker') {
-        if (bet_details.bet_amount < 100) return;
+        if (bet_details.bet_amount < 100) return;        
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
         console.log(access_token);
         const url = `${store.server}/bookmakerbet/`;
@@ -201,8 +221,7 @@ const handleBetSubmission = async () => {
 </script>
 
 <template>
-    <main>
-        <Toast />
+    <main>        
         <Loader v-if="store.match ? store.meta.loading = false : store.meta.loading = true" />        
         <Header />
         <div class="container" v-if="store.match" >
