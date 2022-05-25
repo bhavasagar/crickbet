@@ -86,7 +86,7 @@ const handleBetSubmission = () => {
         }
     }
     else if (bet_details.type=='match') {
-        if (store.match.gold.ratio.blocked || store.match.diamond.ratio.blocked) return;
+        if (store.match.gold.blocked || store.match.diamond.blocked) return;
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
         console.log(access_token);
         const url = `${store.server}/matchbet/`;
@@ -241,7 +241,22 @@ const handleBetSubmission = () => {
                 <form @submit.prevent="handleBetSubmission" class="amount flex flex-row justify-content-between mx-1 my-3 align-items-center" >
                     <InputNumber style="height: 100%;" class="mx-1 p-inputtext-sm" :min="bet_details.min" v-model="bet_details.bet_amount" />
                     <Button type="submit"  label="Submit" style="height: 2rem; font-size: 1rem !important;width: fit-content !important; border-radius: 1.5px !important;" class="p-button p-button-custom ml-2"  />    
-                </form>                
+                    <span class="font-bold text-green-400 align-self-center mr-1 text-xl" > {{ bet_details.bet_amount*bet_details.ratio_invested }} </span>
+                </form>    
+                <div class="buttons-grid ">
+                    <Button  label="50" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 50"  />    
+                    <Button  label="100" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 100"  />    
+                    <Button  label="1000" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 1000"  />    
+
+                    <Button  label="500" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 500"  />    
+                    <Button  label="300" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 300"  />    
+                    <Button  label="2000" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 2000"  />    
+
+                    <Button  label="5000" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 5000"  />    
+                    <Button  label="900" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 900"  />    
+                    <Button  label="3000" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 3000"  />    
+
+                </div>            
             </Dialog>
 
             <div class="contianer--bets my-3" v-if="store.match">
@@ -595,5 +610,11 @@ const handleBetSubmission = () => {
     bottom: 0;
     padding-top: 0.25rem;
     border-right: 1px solid rgba(255,255,255, 0.2);
+}
+.buttons-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    grid-gap: 0.5rem;
 }
 </style>

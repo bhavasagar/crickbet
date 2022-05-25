@@ -179,7 +179,6 @@ class BookMaker(models.Model):
     answer = models.CharField(max_length=300, default="Yes")
     otheroption = models.CharField(max_length=300, default="No")
     ratio = models.ForeignKey(Ratio, on_delete=models.CASCADE)
-    blocked = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f"{self.match.match_name} - {self.question[:10]}..."

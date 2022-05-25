@@ -340,7 +340,7 @@ class BookMakerBetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BookMakerBet
-        fields = "__all__"
+        fields = "__all__"        
 
 class BookMakerSerializer(serializers.ModelSerializer):
     type = serializers.ReadOnlyField()
@@ -348,6 +348,7 @@ class BookMakerSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookMaker
         fields = "__all__"
+        depth = 1
 
 class RechargeSerializer(serializers.ModelSerializer):
     type = serializers.ReadOnlyField(default="R")

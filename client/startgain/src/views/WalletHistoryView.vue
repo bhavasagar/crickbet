@@ -45,7 +45,7 @@ onBeforeMount(async () => {
             <div class="heading  px-1 py-3 text-center " style="background: #000;color: #fff;" >
                 <h3 class="font-bold">Wallet History</h3>
             </div>
-            <div class="bet--history">
+            <div class="bet--history" v-if="wallet_history.length > 0" >
                 <div class="history--row flex flex-row justify-content-between my-3 mx-2 shadow-3 " style=" position: relative;" :key="trans.id" v-for="trans in wallet_history" >                    
                     <span class="flex flex-column my-1 px-1" style="width: 80%;" > 
                         <span class="flex flex-row py-2 " >
@@ -67,7 +67,10 @@ onBeforeMount(async () => {
                         <svg v-else xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#fff"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7 11v2h10v-2H7zm5-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
                     </span>                                       
                 </div>                
-            </div>        
+            </div>   
+            <div class="p-3 m-3" v-else>
+                No records found.
+            </div>     
         </div>
     </main>
 </template>

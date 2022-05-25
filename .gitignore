@@ -10,6 +10,7 @@ lerna-debug.log*
 **/node_modules/**
 **/static/**
 **/migrations/**
+server/crickbet/api/migrations
 .DS_Store
 dist
 dist-ssr
