@@ -1,10 +1,5 @@
-from ast import match_case
-from logging import exception
-from multiprocessing import context
-from platform import machine
-from urllib import response
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.conf import Settings, settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
@@ -23,8 +18,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
 
-from .models import Account, BallToBallRatio, Bet, Match, OverToOverRatio, Score, TossBet, OverToOverBet, MatchBet, BookMakerBet, BallToBallBet, Recharge, UserProfile
-from .serializers import AccountSerializer, BallToBallRatioSerializer, BookMakerSerializer, ForgotPasswordSerializer, LoginSerializer, OverToOverRatioSerializer, ResetPasswordSerializer, UserProfileSerializer, UserRegisterSerializer, UserUpdateSerializer, MatchSerializer, BallToBallBetSerializer, OverToOverBetSerializer, TossBetSerializer, BookMakerBetSerializer, MatchBetSerializer, RechargeSerializer, ScoreSerializer
+from .models import Account, BallToBallRatio, Bet, ManualRechargeUPI, Match, OverToOverRatio, PageData, Score, TossBet, OverToOverBet, MatchBet, BookMakerBet, BallToBallBet, Recharge, UserProfile, WithDrawRequest
+from .serializers import AccountSerializer, BallToBallRatioSerializer, BookMakerSerializer, ForgotPasswordSerializer, LoginSerializer, ManualRechargeUPISerializer, OverToOverRatioSerializer, ResetPasswordSerializer, UserProfileSerializer, UserRegisterSerializer, UserUpdateSerializer, MatchSerializer, BallToBallBetSerializer, OverToOverBetSerializer, TossBetSerializer, BookMakerBetSerializer, MatchBetSerializer, RechargeSerializer, ScoreSerializer, PageDataSerializer, WithDrawSerializer
 from . import paytm
 
 class LoginView(GenericAPIView):
@@ -123,70 +118,35 @@ class TossBetCreateAPI(CreateAPIView):
         authentication_classes = [authentication.BasicAuthentication]
     permission_classes = (IsAuthenticated,)
     serializer_class = TossBetSerializer
-    queryset = TossBet.objects.all()    
-
-class TossBetAPI(RetrieveDestroyAPIView):
-    if settings.BROWSE:
-        authentication_classes = [authentication.BasicAuthentication]
-    permission_classes = (IsAuthenticated,)
-    serializer_class = TossBetSerializer
-    queryset = TossBet.objects.all()
+    queryset = TossBet.objects.none()    
 
 class OverToOverBetCreateAPI(CreateAPIView):
     if settings.BROWSE:
         authentication_classes = [authentication.BasicAuthentication]
     permission_classes = (IsAuthenticated,)
     serializer_class = OverToOverBetSerializer
-    queryset = OverToOverBet.objects.all()    
-
-class OverToOverBetAPI(RetrieveDestroyAPIView):
-    if settings.BROWSE:
-        authentication_classes = [authentication.BasicAuthentication]
-    permission_classes = (IsAuthenticated,)
-    serializer_class = OverToOverBetSerializer
-    queryset = OverToOverBet.objects.all()
+    queryset = OverToOverBet.objects.none()    
 
 class BallToBallBetCreateAPI(CreateAPIView):
     if settings.BROWSE:
         authentication_classes = [authentication.BasicAuthentication]
     permission_classes = (IsAuthenticated,)
     serializer_class = BallToBallBetSerializer
-    queryset = BallToBallBet.objects.all()    
-
-class BallToBallBetAPI(RetrieveDestroyAPIView):
-    if settings.BROWSE:
-        authentication_classes = [authentication.BasicAuthentication]
-    permission_classes = (IsAuthenticated,)
-    serializer_class = BallToBallBetSerializer
-    queryset = BallToBallBet.objects.all()
+    queryset = BallToBallBet.objects.none()    
 
 class BookMakerBetCreateAPI(CreateAPIView):
     if settings.BROWSE:
         authentication_classes = [authentication.BasicAuthentication]
     permission_classes = (IsAuthenticated,)
     serializer_class = BookMakerBetSerializer
-    queryset = BookMakerBet.objects.all()    
-
-class BookMakerBetAPI(RetrieveDestroyAPIView):
-    if settings.BROWSE:
-        authentication_classes = [authentication.BasicAuthentication]
-    permission_classes = (IsAuthenticated,)
-    serializer_class = BookMakerBetSerializer
-    queryset = BookMakerBet.objects.all()
+    queryset = BookMakerBet.objects.none()    
 
 class MatchBetCreateAPI(CreateAPIView):
     if settings.BROWSE:
         authentication_classes = [authentication.BasicAuthentication]
     permission_classes = (IsAuthenticated,)
     serializer_class = MatchBetSerializer
-    queryset = MatchBet.objects.all()    
-
-class MatchBetAPI(RetrieveDestroyAPIView):
-    if settings.BROWSE:
-        authentication_classes = [authentication.BasicAuthentication]
-    permission_classes = (IsAuthenticated,)
-    serializer_class = MatchBetSerializer
-    queryset = MatchBet.objects.all()
+    queryset = MatchBet.objects.none()    
 
 def get_match_data(match):
     match_data = {}        
@@ -198,6 +158,7 @@ def get_match_data(match):
     match_data["bookmaker"] = BookMakerSerializer(bookmakers, many=True).data
     match_data["over_to_over_ratios"] = []
     match_data["ball2ball_ratios"] = []
+    match_data['current_over'] = match.current_over
     scores_exist = False
     if scorea.exists():
         scores_exist = True
@@ -209,7 +170,7 @@ def get_match_data(match):
         serialized_score_b = ScoreSerializer(scoreb.first())
         match_data[serialized_score_b.data["team"]] = serialized_score_b.data 
     if scores_exist:
-        over2over_ratios = OverToOverRatio.objects.filter(match=match, over_num__gte=int(match.score_set.last().overs))         
+        over2over_ratios = OverToOverRatio.objects.filter(match=match)         
         over2over_serializer = OverToOverRatioSerializer(over2over_ratios, many=True)
         ball2ball_ratios = BallToBallRatio.objects.filter(match=match)         
         ball2ball_serializer = BallToBallRatioSerializer(ball2ball_ratios, many=True)
@@ -223,14 +184,18 @@ class CurrentMatchesAPI(APIView):
     permission_classes = (IsAuthenticated,)    
 
     def get(self, request):
-        matches = Match.objects.filter(not_required=False)
-        if not matches.exists():
-            return Response({"message": "There aren't any matches scheduled today."})
+        matches = Match.objects.filter(not_required=False)        
         data = []
         for match in matches:    
             match_data = get_match_data(match)
-            data.append(match_data)                  
+            data.append(match_data)     
+        old_matchs = Match.objects.filter(not_required=True).order_by('-id')      
+        for match in old_matchs[:2]:
+            match_data = get_match_data(match)
+            data.append(match_data)
         print(data)
+        if data == []:
+            return Response({"message": "There aren't any matches scheduled today."})
         return Response({"data": data}, status=status.HTTP_200_OK)                
 
 class MatcheDetailAPI(APIView):
@@ -280,6 +245,84 @@ class UserDetailsAPI(APIView):
         account_serializer = AccountSerializer(account)        
         data.update(account_serializer.data)                
         return Response({"data": data}, status=status.HTTP_200_OK)
+
+class RechargeAPI(CreateAPIView):
+    if settings.BROWSE:
+        authentication_classes = [authentication.BasicAuthentication]    
+    permission_classes = (IsAuthenticated,)
+    serializer_class = RechargeSerializer
+    queryset = Recharge.objects.all()
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def Wallet_history_api(request):
+    if request.method == 'GET':
+        wallet_history = []
+        recharges = Recharge.objects.filter(user=request.user).order_by('-id')
+        wallet_history += RechargeSerializer(recharges, many=True).data
+        withdrawls = WithDrawRequest.objects.filter(user=request.user).order_by('-id')
+        wallet_history += WithDrawSerializer(withdrawls, many=True).data        
+        return Response({"data": wallet_history}, status=status.HTTP_200_OK)    
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def withdraw_request(request):        
+    if request.method == "POST":        
+        serializer_class = WithDrawSerializer        
+        user = get_object_or_404(User, pk=request.data.get('user'))
+        if float(request.data.get('amount')) <= float(user.account.balance):
+            print(True)
+            instance = serializer_class(data=request.data)
+            if instance.is_valid():
+                account = user.account
+                account.balance = float(account.balance) - float(request.data.get('amount'))
+                account.save()
+                instance.save() 
+            return Response({"data": instance.data}, status=status.HTTP_201_CREATED)
+        print(request.data, request.data.get('amount'), float(user.account.balance))
+        return Response({"detail": "Request failed due to Insuffiecient Balance"}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def bet_history(request):
+    if request.method == "GET":        
+        bet_history = []
+        bets = MatchBet.objects.filter(user=request.user).order_by('-id')
+        bet_history += MatchBetSerializer(bets, many=True).data
+        # print(bet_history, request.user)
+        bets = OverToOverBet.objects.filter(user=request.user).order_by('-id')        
+        bet_history += OverToOverBetSerializer(bets, many=True).data
+        bets = BallToBallBet.objects.filter(user=request.user).order_by('-id')
+        bet_history += BallToBallBetSerializer(bets, many=True).data    
+        bets = BookMakerBet.objects.filter(user=request.user).order_by('-id')
+        bet_history += BookMakerBetSerializer(bets, many=True).data            
+        bets = TossBet.objects.filter(user=request.user).order_by('-id')        
+        bet_history += TossBetSerializer(bets, many=True).data                    
+        return Response({"data": bet_history}, status=status.HTTP_200_OK)    
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def page_details(request):
+    if request.method == "GET":
+        page_details = PageData.objects.all().last()
+        if not page_details:
+            return Response({"data": {"heading": "IPL 2022", "scroll_text": "Lorem Ipsum text"}}, status=status.HTTP_200_OK)
+        return Response({"data": PageDataSerializer(page_details).data}, status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def upi_details(request):
+    if request.method == "GET":
+        recharge_details = ManualRechargeUPI.objects.all().last()        
+        return Response({"data": ManualRechargeUPISerializer(recharge_details).data}, status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

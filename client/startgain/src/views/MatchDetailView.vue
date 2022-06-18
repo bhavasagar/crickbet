@@ -1,54 +1,85 @@
 <script setup>
 import Header from "@/components/Header.vue";
 import backgroundImage from "@/assets/ground.jpg"
-import { onMounted, onBeforeMount, onUnmounted, ref, reactive } from "@vue/runtime-core";
+import { onMounted, onBeforeMount, onUnmounted, ref, reactive, onBeforeUnmount } from "@vue/runtime-core";
 import userStore from "@/stores/store.js";
 import { useRoute } from "vue-router";
+import {ToastSeverity} from 'primevue/api';
+import { useToast } from "primevue/usetoast"; 
+import Loader from "@/components/Loader.vue";
 
+import formatDateTime from "@/helpers/FormatDateTime";
+import Toast from "primevue/toast";
+
+const toast = useToast();
 const route = useRoute();
-var fetch_matches
 const store = userStore();
 const placebet = ref(false);
+var fetch_matches;
 const bet_details = reactive({
     invested_on: null,
     bet_amount: 500,
     ratio_invested: 1,
     type: null,
     over_num: null,
-    ball_num: null
+    ball_num: null,
+    bookmaker_id: null,
+    blocked: false,
+    min: 50
 })
 
 onBeforeMount(() => {
     clearInterval(fetch_matches);
     fetch_matches = setInterval(() => {
         store.getMatchDetail(route.params.matchid);
-    }, 6*1000);
-    if (!store.user) {        
-        store.getUserDetails();        
-    }
+    }, 6*1000);    
 });
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
     clearInterval(fetch_matches);
 });
 
-const handleClick = (invested_on, ratio_invested, type, over_num=null, ball_num=null) => {
+const handleClick = (invested_on, ratio_invested, type, over_num=null, ball_num=null, bookmaker_id=null) => {
+    console.log(invested_on, ratio_invested, type, over_num, ball_num, bookmaker_id)
     bet_details.invested_on = invested_on;
     bet_details.ratio_invested = ratio_invested;
     bet_details.type = type;
     bet_details.over_num = over_num;
     bet_details.ball_num = ball_num;
+    bet_details.bookmaker_id = bookmaker_id;    
     placebet.value = true;
-    console.log(true)
+
+    switch(type){
+        case "toss":
+        case "bookmaker":
+        case "over":
+            bet_details.min = 100
+            break         
+        case "match":
+            bet_details.min = 200
+            break                       
+        case "ball":
+            bet_details.min = 50        
+    }
+
+    console.log(ratio_invested)
 }
 
-const handleBetSubmission = () => {
-    if (type=='toss') {
+const handleBetSubmission = async () => {
+    console.log(bet_details)
+    if (store.user.balance < bet_details.bet_amount){
+        toast.add({severity: ToastSeverity.WARN, summary: "Insufficient Balance", detail: "Please recharge to place bet."})
+        return;
+    }
+    if (bet_details.type=='toss') {
+        if (store.match.tossbet_ratio.blocked) return;
+        if (bet_details.bet_amount < 100) return;        
         const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
+        console.log(access_token);
         const url = `${store.server}/tossbet/`;
         const options = {
             method: "POST",
-            headers: new Header({'Authorization': `Bearer ${access_token}`}),
+            headers: new Headers({"Content-Type": "application/json", 'Authorization': `Bearer ${access_token}`}),
             body: JSON.stringify({
                                 "user": store.user.id,
                                 "match": store.match.id,
@@ -57,24 +88,147 @@ const handleBetSubmission = () => {
                                 "ratio_invested": 2
                                 })
         }
-        const data = store.request(url, options)
+        const data = await store.request(url, options)
+        console.log(data)
         if (data.id) {
             console.log("success");
+            toast.add({severity: ToastSeverity.SUCCESS, summary: `Bet Placed with amount ${bet_details.bet_amount}`, detail: `Invested on ${bet_details.invested_on}`, life: 3000});
+            store.getUserDetails();
         }
     }
+    if (store.user.balance < bet_details.bet_amount){
+        toast.add({severity: ToastSeverity.WARN, summary: "Insufficient Balance", detail: "Please recharge to place bet."})
+        return;
+    }
+    else if (bet_details.type=='match') {
+        if (store.match.gold.blocked || store.match.diamond.blocked) return;
+        if (bet_details.bet_amount < 200) return;        
+        const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
+        console.log(access_token);
+        const url = `${store.server}/matchbet/`;
+        const options = {
+            method: "POST",
+            headers: new Headers({"Content-Type": "application/json", 'Authorization': `Bearer ${access_token}`}),
+            body: JSON.stringify({
+                                "user": store.user.id,
+                                "match": store.match.id,
+                                "amount_invested": bet_details.bet_amount,
+                                "invested_on": bet_details.invested_on,
+                                "ratio_invested": bet_details.ratio_invested
+                                })
+        }        
+        const data = await store.request(url, options)
+        console.log(data)
+        if (data.id) {
+            console.log("success");
+            toast.add({severity: ToastSeverity.SUCCESS, summary: `Bet Placed with amount ${bet_details.bet_amount}`, detail: `Invested on ${bet_details.invested_on}`, life: 3000});
+            store.getUserDetails();
+        }
+        if (store.user.balance < bet_details.bet_amount){
+        toast.add({severity: ToastSeverity.WARN, summary: "Insufficient Balance", detail: "Please recharge to place bet."})
+        return;
+    }
+    }
+    else if (bet_details.type=='over') {
+        if (bet_details.bet_amount < 100) return;        
+        const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
+        console.log(access_token);
+        const url = `${store.server}/overtooverbet/`;
+        const options = {
+            method: "POST",
+            headers: new Headers({"Content-Type": "application/json", 'Authorization': `Bearer ${access_token}`}),
+            body: JSON.stringify({
+                                "user": store.user.id,
+                                "match": store.match.id,
+                                "amount_invested": bet_details.bet_amount,
+                                "invested_on": bet_details.invested_on,
+                                "ratio_invested": bet_details.ratio_invested,
+                                "over_num": bet_details.over_num,
+                                "team": store.match.batting_team
+                                })
+        }
+        const data = await store.request(url, options)
+        console.log(data)
+        if (data.id) {
+            console.log("success");
+            toast.add({severity: ToastSeverity.SUCCESS, summary: `Bet Placed with amount ${bet_details.bet_amount}`, detail: `Invested on ${bet_details.invested_on}`, life: 3000});
+            store.getUserDetails();
+        }
+    }    
+    else if (bet_details.type=='ball') {
+        if (bet_details.bet_amount < 50)  return;
+        if (store.user.balance < bet_details.bet_amount){
+            toast.add({severity: ToastSeverity.WARN, summary: "Insufficient Balance", detail: "Please recharge to place bet."})
+            eturn;
+        }
+        const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
+        console.log(access_token);
+        const url = `${store.server}/balltoballbet/`;
+        const options = {
+            method: "POST",
+            headers: new Headers({"Content-Type": "application/json", 'Authorization': `Bearer ${access_token}`}),
+            body: JSON.stringify({
+                                "user": store.user.id,
+                                "match": store.match.id,
+                                "amount_invested": bet_details.bet_amount,
+                                "invested_on": bet_details.invested_on,
+                                "ratio_invested": bet_details.ratio_invested,
+                                "ball_num": bet_details.ball_num,
+                                "team": store.match.batting_team
+                                })
+        }
+        const data = await store.request(url, options)
+        console.log(data)
+        if (data.id) {
+            console.log("success");
+            toast.add({severity: ToastSeverity.SUCCESS, summary: `Bet Placed with amount ${bet_details.bet_amount}`, detail: `Invested on ${bet_details.invested_on}`, life: 3000});
+            store.getUserDetails();
+        }
+        if (store.user.balance < bet_details.bet_amount){
+        toast.add({severity: ToastSeverity.WARN, summary: "Insufficient Balance", detail: "Please recharge to place bet."})
+        return;
+    }
+    }
+    else if (bet_details.type=='bookmaker') {
+        if (bet_details.bet_amount < 100) return;        
+        const access_token = JSON.parse(localStorage.getItem("credentials")).access_token;
+        console.log(access_token);
+        const url = `${store.server}/bookmakerbet/`;
+        const options = {
+            method: "POST",
+            headers: new Headers({"Content-Type": "application/json", 'Authorization': `Bearer ${access_token}`}),
+            body: JSON.stringify({
+                                "user": store.user.id,
+                                "match": store.match.id,
+                                "amount_invested": bet_details.bet_amount,
+                                "invested_on": bet_details.invested_on,
+                                "ratio_invested": bet_details.ratio_invested,  
+                                "bookmaker_id": bet_details.bookmaker_id                              
+                                })
+        }
+        const data = await store.request(url, options)
+        console.log(data)
+        if (data.id) {
+            console.log("success");
+            toast.add({severity: ToastSeverity.SUCCESS, summary: `Bet Placed with amount ${bet_details.bet_amount}`, detail: `Invested on ${bet_details.invested_on}`, life: 3000});
+            store.getUserDetails();
+        }
+    }
+    bet_details.bet_amount = null;
     placebet.value = false;
 }
 
 </script>
 
 <template>
-    <main>
+    <main>        
+        <Loader v-if="store.match ? store.meta.loading = false : store.meta.loading = true" />        
         <Header />
         <div class="container" v-if="store.match" >
             <div class="match--header p-2">
                 <span class="font-semibold text-base">{{store.match.match_name}}</span>
                 <span style="text-align: right;" class="block">
-                    {{store.match.date}}
+                    {{formatDateTime(store.match.date)}}
                 </span>
             </div>
             <div class="match-score-header p-3" style="font: size 0.95rem;background-position: center;" :style="{ backgroundImage: `url(${backgroundImage})` }">
@@ -103,25 +257,46 @@ const handleBetSubmission = () => {
                         </span>
                     </div>
                     <div class="team-score font-bold">
-                        <span class="font-bold" v-if="store.match[store.match.team_a]">
-                            {{store.match[store.match.team_a].runs}}-{{store.match[store.match.team_a].wickets}} ({{store.match[store.match.team_a].overs}})
+                        <span class="font-bold" v-if="store.match[store.match.team_b]">
+                            {{store.match[store.match.team_b].runs}}-{{store.match[store.match.team_b].wickets}} ({{store.match[store.match.team_b].overs}})
                         </span>
                         <span class="font-bold" v-else>
                             N/A
                         </span>
                     </div>
                 </div>
+                <div class="toss-winner flex flex-row justify-content-start ml-2 font-bold" v-if="store.match.toss_winning_team">
+                    <span class="font-bold" >Toss Winner</span> <span class="mx-2">-</span> <span class="font-bold" v-if="store.match.toss_winning_team"> {{ store.match.toss_winning_team }} </span><span class="font-bold" v-else> N/A </span>
+                </div>
+                <div class="toss-winner flex flex-row justify-content-start ml-2 font-bold" v-if="store.match.match_winning_team">
+                    <span class="font-bold" >Match Winner</span> <span class="mx-2">-</span> <span class="font-bold"  v-if="store.match.match_winning_team" > {{ store.match.match_winning_team }} </span><span class="font-bold" v-else> N/A </span>
+                </div>
             </div>
             
-            <Dialog class="p-dialog" header="INVEST" :key="header" v-model:visible="placebet" >
-                <div class="bet--details flex flex-row justify-content-between p-2 mx-1 my-3 ">
-                    <span class="team--name">{{bet_details.invested_on}}</span>
-                    <span class="ratio--bet">{{bet_details.bet_ratio}}</span>
+            <Dialog class="p-dialog" header="INVEST" :key="header" v-model:visible="placebet"  >
+                <div class="bet--details flex flex-row justify-content-between mx-1 my-3 "  >
+                    <span class="font-bold">{{bet_details.invested_on}}</span> 
+                    <span class="font-bold mr-3" >{{bet_details.ratio_invested}}</span>
                 </div>                
-                <form @submit.prevent="handleBetSubmission" class="amount flex flex-row justify-content-between p-2 mx-1 my-3 align-content-center" >
-                    <InputNumber style="height: 2.6rem" v-model="bet_details.bet_amount" />
-                    <Button type="submit"  label="Submit" class="p-button p-button-custom ml-2"  />    
-                </form>                
+                <form @submit.prevent="handleBetSubmission" class="amount flex flex-row justify-content-between mx-1 my-3 align-items-center" >
+                    <InputNumber style="height: 100%;" class="mx-1 p-inputtext-sm" :min="bet_details.min" v-model="bet_details.bet_amount" />
+                    <Button type="submit"  label="Submit" style="height: 2rem; font-size: 1rem !important;width: fit-content !important; border-radius: 1.5px !important;" class="p-button p-button-custom ml-2"  />    
+                    <span class="font-bold text-green-400 align-self-center mr-1 text-xl" > {{ bet_details.bet_amount*bet_details.ratio_invested }} </span>
+                </form>    
+                <div class="buttons-grid ">
+                    <Button  label="50" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 50"  />    
+                    <Button  label="100" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 100"  />    
+                    <Button  label="1000" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 1000"  />    
+
+                    <Button  label="500" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 500"  />    
+                    <Button  label="300" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 300"  />    
+                    <Button  label="2000" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 2000"  />    
+
+                    <Button  label="5000" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 5000"  />    
+                    <Button  label="900" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 900"  />    
+                    <Button  label="3000" style="border-radius: 1.5px !important;margin: 0 !important;" class="p-button p-button-custom py-1 px-1" @click="bet_details.bet_amount = 3000"  />    
+
+                </div>            
             </Dialog>
 
             <div class="contianer--bets my-3" v-if="store.match">
@@ -134,7 +309,7 @@ const handleBetSubmission = () => {
                     <div class="details--bet">
                         <div class="flex flex-row">
                             <div class="min-max--bet span-2-col" style="width: 70%">
-                                <span class="mr-2">Min: 500</span>
+                                <span class="mr-2">Min: 100</span>
                                 <span>Max: 500000</span>
                             </div>                        
                             <div class="ratio--bet back-bet" style="width: 30%" >
@@ -149,7 +324,7 @@ const handleBetSubmission = () => {
                                     {{store.match.team_a}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" style="width: 30%" @click="handleClick(store.match.team_a, store.match.tossbet_ratio.ratio_a, 'toss')" >
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.tossbet_ratio.blocked && 'blocked'" style="width: 30%" @click="!store.match.tossbet_ratio.blocked && handleClick(store.match.team_a, store.match.tossbet_ratio.ratio_a, 'toss')" >
                                 {{store.match.tossbet_ratio.ratio_a}}
                             </div>
                             
@@ -161,7 +336,7 @@ const handleBetSubmission = () => {
                                     {{store.match.team_b}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" style="width: 30%" @click="handleClick(store.match.team_b, store.match.tossbet_ratio.ratio_b, 'toss')" >
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.tossbet_ratio.blocked && 'blocked'" style="width: 30%" @click="!store.match.tossbet_ratio.blocked && handleClick(store.match.team_b, store.match.tossbet_ratio.ratio_b, 'toss')" >
                                 {{store.match.tossbet_ratio.ratio_b}}
                             </div>
                             
@@ -178,7 +353,7 @@ const handleBetSubmission = () => {
                     <div class="details--bet">
                         <div class="flex flex-row">
                             <div class="min-max--bet span-2-col">
-                                <span class="mr-2">Min: 500</span>
+                                <span class="mr-2">Min: 200</span>
                                 <span>Max: 500000</span>
                             </div>                        
                             <div class="ratio--bet back-bet">
@@ -195,10 +370,10 @@ const handleBetSubmission = () => {
                                     {{store.match.team_a}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" @click="handleClick(store.match.team_a, store.match.gold.ratio_a, 'match')">
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.gold.blocked && 'blocked'" @click="!store.match.gold.blocked && handleClick(store.match.team_a, store.match.gold.ratio_a, 'match')">
                                 {{store.match.gold.ratio_a}}
                             </div>
-                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" @click="handleClick(store.match.team_b, store.match.gold.ratio_b, 'match')">
+                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="store.match.gold.blocked && 'blocked'" @click="!store.match.gold.blocked && handleClick(store.match.team_b, store.match.gold.ratio_b, 'match')">
                                 {{store.match.gold.ratio_b}}
                             </div>
                         </div>
@@ -209,10 +384,10 @@ const handleBetSubmission = () => {
                                     {{store.match.team_b}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" @click="handleClick(store.match.team_a, store.match.diamond.ratio_a, 'match')">
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.diamond.blocked && 'blocked'" @click="!store.match.diamond.blocked && handleClick(store.match.team_a, store.match.diamond.ratio_a, 'match')">
                                 {{store.match.diamond.ratio_a}}
                             </div>
-                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" @click="handleClick(store.match.team_b, store.match.diamond.ratio_b, 'match')">
+                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="store.match.diamond.blocked && 'blocked'" @click="!store.match.diamond.blocked && handleClick(store.match.team_b, store.match.diamond.ratio_b, 'match')">
                                 {{store.match.diamond.ratio_b}}
                             </div>
                         </div>
@@ -228,7 +403,7 @@ const handleBetSubmission = () => {
                     <div class="details--bet">
                         <div class="flex flex-row">
                             <div class="min-max--bet span-2-col">
-                                <span class="mr-2">Min: 500</span>
+                                <span class="mr-2">Min: 100</span>
                                 <span>Max: 500000</span>
                             </div>                        
                             <div class="ratio--bet back-bet">
@@ -239,39 +414,25 @@ const handleBetSubmission = () => {
                             </div>
                         </div>
                         
-                        <div class="flex flex-row">
+                        <div class="flex flex-row" v-for="bookmaker in store.match.bookmaker" :key="bookmaker.id" >
                             <div class="team--name py-2 px-1 span-2-col align-self-center">
                                 <span>
-                                    Score in last over will be greater than 12?
+                                    {{bookmaker.question}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" @click="handleClick('replace it by qusestion', 'store.match.tossbet_ratio.ratio_a', 'bookmaker')">
-                                1.2
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="bookmaker.ratio.blocked && 'blocked'" @click="handleClick(bookmaker.question, bookmaker.ratio.ratio_a, 'bookmaker', null, null, bookmaker.id)">
+                                {{bookmaker.ratio.ratio_a}}
                             </div>
-                            <div class="ratio-bet--value py-2 lay-bet align-self-strech">
-                                1.4
+                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="bookmaker.ratio.blocked && 'blocked'" @click="handleClick(bookmaker.question, bookmaker.ratio.ratio_b, 'bookmaker', null, null, bookmaker.id)">
+                                {{bookmaker.ratio.ratio_b}}
                             </div>
-                        </div>
-
-                        <div class="flex flex-row">
-                            <div class="team--name span-2-col py-2 px-1 align-self-center">
-                                <span>
-                                    Wide ball in next over?
-                                </span>
-                            </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech">
-                                2.2
-                            </div>
-                            <div class="ratio-bet--value py-2 lay-bet align-self-strech">
-                                2.1
-                            </div>
-                        </div>
+                        </div>                        
 
                     </div>
                 </div>                           
                 
                 
-                <div class="match--bet flex flex-column lg:my-0 md:my-0 sm:my-2 md:mx-2 lg:mx-2" id="over" v-if="store.match.over_to_over_ratios.length > 0" >
+                <div class="match--bet flex flex-column lg:my-0 md:my-0 my-2 md:mx-2 lg:mx-2" id="over" v-if="store.match.over_to_over_ratios.length > 0" >
                     <div class="title--bet py-1 px-3 flex flex-row align-items-center justify-content-between">
                         <span>OVER TO OVER</span>
                         <span class="pi pi-info-circle mr-0 "></span>
@@ -279,7 +440,7 @@ const handleBetSubmission = () => {
                     <div class="details--bet">
                         <div class="flex flex-row">
                             <div class="min-max--bet span-2-col">
-                                <span class="mr-2">Min: 500</span>
+                                <span class="mr-2">Min: 100</span>
                                 <span>Max: 500000</span>
                             </div>                        
                             <div class="ratio--bet back-bet">
@@ -290,21 +451,21 @@ const handleBetSubmission = () => {
                             </div>
                         </div>
                         
-                        <span v-for="over in store.match.over_to_over_ratios" :key="over.id">
-                            <div class="flex flex-row" v-if="over.over_num > store.match" >
+                        <span v-for="over in store.match.over_to_over_ratios.filter(item => item.team == store.match.batting_team) " :key="over.id" >
+                            <div class="flex flex-row" v-if=" parseFloat(store.match.current_over)+1 < parseFloat(over.over_num)" >
                                 <div class="team--name py-2 px-1 span-2-col align-self-center flex flex-column">
                                     <span>
-                                        Over {{over.over_num}}
+                                        Over {{ parseFloat(over.over_num) + 1 }}
                                     </span>
                                     <span style="padding: 0; margin: 0; font-size: 0.8rem; font-weight: 400">
                                         runs greater than {{over.expected_runs}}
                                         <!-- {{expected_runs}} -->
                                     </span>
                                 </div>
-                                <div class="ratio-bet--value py-2 back-bet align-self-strech">
+                                <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="over.ratio.blocked && 'blocked'" @click="!over.ratio.blocked && handleClick('YES', over.ratio.ratio_a, 'over', over_num=over.over_num)" >
                                     {{over.ratio.ratio_a}}
                                 </div>
-                                <div class="ratio-bet--value py-2 lay-bet align-self-strech">
+                                <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="over.ratio.blocked && 'blocked'" @click="!over.ratio.blocked && handleClick('NO', over.ratio.ratio_b, 'over', over_num=over.over_num)" >
                                     {{over.ratio.ratio_b}}
                                 </div>
                             </div>                    
@@ -320,7 +481,7 @@ const handleBetSubmission = () => {
                     <div class="details--bet">
                         <div class="flex flex-row">
                             <div class="min-max--bet span-2-col">
-                                <span class="mr-2">Min: 500</span>
+                                <span class="mr-2">Min: 50</span>
                                 <span>Max: 500000</span>
                             </div>                        
                             <div class="ratio--bet back-bet">
@@ -330,23 +491,24 @@ const handleBetSubmission = () => {
                                 NO  
                             </div>
                         </div>
-                        
-                        <div class="flex flex-row" v-for="num in 6" :key="num">
-                            <div class="team--name py-2 px-1 span-2-col align-self-center flex flex-column">
-                                <span>
-                                    Ball 3.{{num+1}}
-                                </span>
-                                <span style="padding: 0; margin: 0; font-size: 0.8rem; font-weight: 400">
-                                    runs: x
-                                </span>
+                        <span v-for="ball_ratio in store.match.ball2ball_ratios.filter(item => item.team == store.match.batting_team)" :key="ball_ratio.id">
+                            <div class="flex flex-row" v-if=" parseFloat(store.match.current_over)+1 < parseFloat(ball_ratio.ball_num)" >
+                                <div class="team--name py-2 px-1 span-2-col align-self-center flex flex-column">
+                                    <span>
+                                        Ball {{parseFloat(ball_ratio.ball_num)+1}}
+                                    </span>
+                                    <span style="padding: 0; margin: 0; font-size: 0.8rem; font-weight: 400">
+                                        runs greater than {{ball_ratio.expected_runs}}
+                                    </span>
+                                </div>
+                                <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="ball_ratio.ratio.blocked && 'blocked'" @click=" !ball_ratio.ratio.blocked && handleClick('YES', ball_ratio.ratio.ratio_a, 'ball', null, ball_ratio.ball_num)" >
+                                    {{ball_ratio.ratio.ratio_a}}
+                                </div>
+                                <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="ball_ratio.ratio.blocked && 'blocked'" @click="!ball_ratio.ratio.blocked && handleClick('NO', ball_ratio.ratio.ratio_b, 'ball', null, ball_ratio.ball_num)" >
+                                    {{ball_ratio.ratio.ratio_b}}
+                                </div>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech">
-                                1.2
-                            </div>
-                            <div class="ratio-bet--value py-2 lay-bet align-self-strech">
-                                1.4
-                            </div>
-                        </div>                    
+                        </span>                    
                     </div>
                 </div>                                                       
             </div>            
@@ -428,9 +590,11 @@ const handleBetSubmission = () => {
 .match-score-header{
     color: #fff;
 }
+.p-button > span{
+    font-weight: 600;
+}
 </style>
-
-<style>
+<style >
 .p-dialog-mask{
     width: 100vw !important;
     height: 100vh !important;
@@ -447,9 +611,13 @@ const handleBetSubmission = () => {
     box-shadow: none !important;  
     width: 95% !important;
 }
+.p-dialog-content {
+    background: #eee !important;
+    padding: 0.25rem !important;
+}
 .p-button-custom {
     background: rgb(21, 21, 21);    
-    width: 99%;
+    width: auto !important;
     margin: 0.5rem auto;
     border-radius: 5px;
     font-size: 1.1rem;
@@ -462,5 +630,31 @@ const handleBetSubmission = () => {
 }
 .p-button:focus {
     box-shadow: 0 0 0 0.2rem rgba(208, 207, 207, 0.5) !important;
+}
+.blocked{
+    position: relative;
+    background: rgba(0,0,0,0.5) !important;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    z-index: 100;
+    font-weight: bold;
+}
+.blocked::before {
+    content: "BLOCKED";
+    color: #f00;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding-top: 0.25rem;
+    border-right: 1px solid rgba(255,255,255, 0.2);
+}
+.buttons-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    grid-gap: 0.5rem;
 }
 </style>

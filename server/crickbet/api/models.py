@@ -1,4 +1,4 @@
-from pyexpat import model
+from distutils.command.upload import upload
 from django.db.models.signals import post_save
 from django.conf import settings
 from django.db import models
@@ -77,6 +77,27 @@ class Match(models.Model):
     #         self.diamond.save()
     #     return super().save(*args, **kwargs)
 
+    @property
+    def current_over(self):                
+        score = Score.objects.filter(match=self).order_by('-updated_at').first()
+        if score:
+            return score.overs
+        return None
+    
+    @property
+    def current_ball(self):                
+        score = Score.objects.filter(match=self).order_by('-updated_at').first()
+        if score:
+            return get_ball_num(score.overs)
+        return None
+    
+    @property
+    def batting_team(self):                
+        score = Score.objects.filter(match=self).order_by('-updated_at').first()
+        if score:
+            return score.team
+        return None
+
 import random
 
 class RatioModel(models.Model):
@@ -84,6 +105,7 @@ class RatioModel(models.Model):
     ratio = models.ForeignKey(Ratio, on_delete=models.CASCADE)
     expected_runs = models.IntegerField(default='')
     expected_wickets = models.IntegerField(default=0)
+    team = models.CharField(default='', max_length=50)
 
     class Meta:
         abstract = True
@@ -116,9 +138,14 @@ class Score(models.Model):
     runs = models.IntegerField(default=0)
     wickets = models.IntegerField(default=0)
     overs = models.FloatField(default=0)     
+    updated_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.match.match_name} - {self.team}"   
+    
+    def save(self, *args, **kwargs):
+        self.updated_at = datetime.now()
+        return super().save(*args, **kwargs)
 
 class OverToOverScore(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE)
@@ -152,7 +179,6 @@ class BookMaker(models.Model):
     answer = models.CharField(max_length=300, default="Yes")
     otheroption = models.CharField(max_length=300, default="No")
     ratio = models.ForeignKey(Ratio, on_delete=models.CASCADE)
-    blocked = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f"{self.match.match_name} - {self.question[:10]}..."
@@ -166,7 +192,7 @@ class Bet(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     match = models.ForeignKey(Match, on_delete=models.SET_NULL, blank=True, null=True)
     amount_invested = models.FloatField(default=0)
-    invested_on = models.CharField(max_length=20)    
+    invested_on = models.CharField(max_length=50)    
     result = models.CharField(choices=RESULT_CATEGORY_CHOICES, max_length=5, null=True, blank=True)    
     paid = models.BooleanField(default=False)
     paid_on = models.DateTimeField(blank=True, null=True)
@@ -197,21 +223,37 @@ class MatchBet(Bet):
     def __str__(self) -> str:
         return f"{self.user.username} - MatchBet - Rs.{self.amount_invested}"        
 
+    @property
+    def type(self):
+        return "match"
+
 class OverToOverBet(Bet):    
-    over_num = models.IntegerField() 
+    over_num = models.FloatField() 
     team = models.CharField(max_length=50)
     ratio_invested = models.FloatField()
 
     def __str__(self) -> str:
         return f"{self.user.username} - OverBet - Rs.{self.amount_invested}"      
+    
+    @property
+    def type(self):
+        return "over"
 
 class BallToBallBet(Bet):    
-    ball_num = models.IntegerField() 
+    ball_num = models.FloatField() 
     team = models.CharField(max_length=50)
     ratio_invested = models.FloatField()
 
     def __str__(self) -> str:
-        return f"{self.user.username} - Ball2Ball - Rs.{self.amount_invested}"      
+        return f"{self.user.username} - Ball2Ball - Rs.{self.amount_invested}"  
+
+    @property
+    def type(self):
+        return "ball"    
+    
+    def save(self, *args, **kwargs):
+        self.ball_num = get_ball_num(self.ball_num)
+        return super().save(*args, **kwargs)
 
 class BookMakerBet(Bet):
     bookmaker_id = models.CharField(max_length=10)
@@ -220,25 +262,44 @@ class BookMakerBet(Bet):
     def __str__(self) -> str:
         return f"{self.user.username} - BookMakerBet - Rs.{self.amount_invested}"  
 
+    @property
+    def type(self):
+        return "bookmaker"
+
 class TossBet(Bet):    
     ratio_invested = models.FloatField()
     
     def __str__(self) -> str:
         return f"{self.user.username} - TossBet - Rs.{self.amount_invested}"  
+    
+    @property
+    def type(self):
+        return "toss"
 
 class WithDrawRequest(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     amount = models.CharField(default=False, max_length=15)
     upi_id = models.CharField(default=False, max_length=35)
     paid = models.BooleanField(default=False)  
-    made_on = models.DateTimeField(auto_now_add=True)  
+    made_on = models.DateTimeField()  
 
     def __str__(self):
         return f'{self.amount} - {self.upi_id}'
+    
+    def save(self, *args, **kwargs):
+        self.made_on = datetime.now()
+        return super().save(*args, **kwargs)
 
+class ManualRechargeUPI(models.Model):
+    upi_id = models.CharField(max_length=100)
+    qr_code = models.ImageField(upload_to="Images/")
+
+    def __str__(self) -> str:
+        return self.upi_id
 
 class Recharge(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    proof = models.ImageField(upload_to="Images/", blank=True, null=True)
     amount = models.FloatField()
     mode = models.CharField(max_length=10)
     made_on = models.DateTimeField(auto_now=True)
@@ -247,9 +308,22 @@ class Recharge(models.Model):
     def __str__(self) -> str:
         return f"Recharge - {self.user.username} - Rs.{self.amount}"
 
+class PageData(models.Model):
+    heading = models.CharField(max_length=100)
+    scroll_text = models.CharField(max_length=500)
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)        
 def userprofile_receiver(sender, instance, created, *args, **kwargs):
     if created:
         userprofile = UserProfile.objects.create(user=instance)
         account = Account.objects.create(user=instance)
+
+@receiver(post_save, sender=OverToOverRatio)        
+def userprofile_receiver(sender, instance, created, *args, **kwargs):
+    if created:
+        for ball_num in range(int(instance.over_num)*10+1, int(instance.over_num)*10 + 7):
+            ball_num = float(ball_num/10)   
+            ratio = Ratio.objects.create(ratio_a=10,ratio_b=13)
+            if not BallToBallRatio.objects.filter(match=instance.match, ball_num=ball_num).exists():
+                BallToBallRatio.objects.create(match=instance.match, ratio=ratio, ball_num=ball_num, team=instance.team, expected_runs = str(random.randint(0,5)))
+        

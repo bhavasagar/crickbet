@@ -4,10 +4,11 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {ToastSeverity} from 'primevue/api';
 import { useToast } from "primevue/usetoast";   
-import addToMessages from "@/helpers/addToMessages.js"
 import { email, minLength, required, sameAs } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
+
 import useStore from "@/stores/store.js";
+import addToMessages from "@/helpers/AddToMessages.js"
 
 const store = useStore()
 

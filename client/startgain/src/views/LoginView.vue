@@ -25,7 +25,7 @@ const userdata = reactive({
     });
 
 const rules = {   
-    email: { required, email },
+    email: { required },
     password: { required }
 };
 
@@ -73,8 +73,8 @@ const sendRequest = async () => {
 
     else if (response.ok && result.access_token) {        
         
-        let message = {severity: ToastSeverity.SUCCESS, title: 'Login Successfull', body: `Welcome back, ${userdata.email}`}        
-        addToMessages(message);        
+        // let message = {severity: ToastSeverity.SUCCESS, title: 'Login Successfull', body: `Welcome back, ${userdata.email}`}        
+        // addToMessages(message);        
         
         let credentials = {access_token: result.access_token, refresh_token: result.refresh_token, email: userdata.email}        
         localStorage.setItem('credentials', JSON.stringify(credentials))
@@ -133,9 +133,9 @@ const handleSubmit = async (isFormValid) => {
                             <InputText class="w-full " type="password" placeholder="Password" v-model="v$.password.$model" :class="{'p-invalid':v$.password.$invalid && submitted}" :toggleMask="true" />
                         </div>    
                         <small v-if="(v$.password.$invalid && submitted) || v$.password.$pending.$response" class="p-error mb-3">{{v$.password.required.$message.replace('Value', 'Password')}}</small>
-                        <span class="text-forgot mt-3"><router-link :to="{ name: 'forgot_password'}">Forgot Password</router-link></span>            
+                        <span class="text-forgot mt-3"><a href="https://colortrade.startgain.in/accounts/password/reset/">Forgot Password</a></span>            
                         <Button type="submit"  label="Login" class="p-button p-button-custom mt-2"  />    
-                        <span class="text-create">Don't you have an account? <router-link :to="{ name: 'register'}">create one</router-link></span>            
+                        <span class="text-create">Don't you have an account? <a href="https://colortrade.startgain.in/accounts/signup/">create one</a></span>            
                     </form>                  
                 </div>
             </div>
@@ -173,8 +173,8 @@ section{
     justify-content: center;
 }
 .container {
-    min-width: 24rem;
-    width: auto;
+    width: calc(100vw - 2rem);
+    max-width: 28rem;
     margin: 3rem auto;      
 }
 .card{
@@ -190,17 +190,17 @@ section{
 
 <style>
 .p-button-custom {
-    background: rgb(21, 21, 21);    
-    width: 99%;
-    margin: 0.5rem auto;
-    border-radius: 5px;
-    font-size: 1.1rem;
-    border: 1px solid rgb(50, 50, 50);
+    background: rgb(21, 21, 21)  !important;    
+    width: 99% !important;
+    margin: 0.5rem auto !important;
+    border-radius: 5px !important;
+    font-size: 1.1rem !important;
+    border: 1px solid rgb(50, 50, 50) !important;
 }
 .p-button-custom:enabled:active, .p-button-custom:enabled:hover {
-    background: rgb(21, 21, 21);  
-    color: #ffffff;
-    border-color: rgb(50, 50, 50);  
+    background: rgb(21, 21, 21) !important;  
+    color: #ffffff !important;
+    border-color: rgb(50, 50, 50) !important;  
 }
 .p-button:focus {
     box-shadow: 0 0 0 0.2rem rgba(208, 207, 207, 0.5) !important;

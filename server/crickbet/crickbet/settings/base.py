@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 import os
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,17 +22,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-rtfi#+a6-#x)jqh5^+in9b9_)5t+(lz_@d6b(nip7#mz=ioc0l'
+SECRET_KEY = config("SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True    
 BROWSE = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'startgain.in', 'api.startgain.in']
 
 CORS_ALLOWED_ORIGINS = [    
     "http://127.0.0.1:3000",
     "http://localhost:3000",
+    "http://startgain.in",
+    "https://startgain.in",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -148,17 +151,19 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = 'media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+TIME_ZONE = 'UTC'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates'),], 
+        'DIRS': [os.path.join(BASE_DIR, '../templates'),], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -170,3 +175,8 @@ TEMPLATES = [
         },
     },
 ]
+
+STATIC_ROOT = '/home/circkbet/crickbet/server/crickbet/static'  
+MEDIA_ROOT = '/home/circkbet/crickbet/server/crickbet/media'  
+
+print(STATIC_ROOT)
