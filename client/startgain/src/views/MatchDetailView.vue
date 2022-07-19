@@ -280,7 +280,7 @@ const handleBetSubmission = async () => {
                 </div>                
                 <form @submit.prevent="handleBetSubmission" class="amount flex flex-row justify-content-between mx-1 my-3 align-items-center" >
                     <InputNumber style="height: 100%;" class="mx-1 p-inputtext-sm" :min="bet_details.min" v-model="bet_details.bet_amount" />
-                    <Button type="submit"  label="Submit" style="height: 2rem; font-size: 1rem !important;width: fit-content !important; border-radius: 1.5px !important;" class="p-button p-button-custom ml-2"  />    
+                    <Button type="submit"  label="OK" style="height: 2rem; font-size: 1rem !important;width: fit-content !important; border-radius: 1.5px !important;" class="p-button p-button-custom ml-2"  />    
                     <span class="font-bold text-green-400 align-self-center mr-1 text-xl" > {{ bet_details.bet_amount*bet_details.ratio_invested }} </span>
                 </form>    
                 <div class="buttons-grid ">
@@ -373,7 +373,7 @@ const handleBetSubmission = async () => {
                             <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.gold.blocked && 'blocked'" @click="!store.match.gold.blocked && handleClick(store.match.team_a, store.match.gold.ratio_a, 'match')">
                                 {{store.match.gold.ratio_a}}
                             </div>
-                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="store.match.gold.blocked && 'blocked'" @click="!store.match.gold.blocked && handleClick(store.match.team_b, store.match.gold.ratio_b, 'match')">
+                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="store.match.gold.blocked && 'blocked'" @click="!store.match.gold.blocked && handleClick(store.match.team_a, store.match.gold.ratio_b, 'match')">
                                 {{store.match.gold.ratio_b}}
                             </div>
                         </div>
@@ -384,7 +384,7 @@ const handleBetSubmission = async () => {
                                     {{store.match.team_b}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.diamond.blocked && 'blocked'" @click="!store.match.diamond.blocked && handleClick(store.match.team_a, store.match.diamond.ratio_a, 'match')">
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.diamond.blocked && 'blocked'" @click="!store.match.diamond.blocked && handleClick(store.match.team_b, store.match.diamond.ratio_a, 'match')">
                                 {{store.match.diamond.ratio_a}}
                             </div>
                             <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="store.match.diamond.blocked && 'blocked'" @click="!store.match.diamond.blocked && handleClick(store.match.team_b, store.match.diamond.ratio_b, 'match')">
