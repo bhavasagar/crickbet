@@ -94,10 +94,10 @@ class FetchMatchesList:
         print(batting_team)
         over_num = int(score[item_num]['overs'])               
         if over_num >= 0:
-            if not OverToOverRatio.objects.filter(match=db_match, team=batting_team, over_num=over_num+1).exists() and ((over_num+1 < 20) and ('T20' in db_match.type) ):
+            if not OverToOverRatio.objects.filter(match=db_match, team=batting_team, over_num=over_num+2).exists() and ((over_num+1 < 20) and ('T20' in db_match.match_type) ):
                 print("creating o2o bets")
                 ratio = Ratio.objects.create(ratio_a=1.2, ratio_b=1.2)
-                OverToOverRatio.objects.create(match=db_match, ratio=ratio, team=batting_team, over_num=over_num+1)
+                OverToOverRatio.objects.create(match=db_match, ratio=ratio, team=batting_team, over_num=over_num+2)
             over_previous_bets = OverToOverBet.objects.filter(match=db_match, over_num__lte=over_num, paid=False)
             all_b2b_data = self._request("GET",self.ball2ballscore_url)            
             # Filter current match b2b data           
