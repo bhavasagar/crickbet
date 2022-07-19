@@ -9,6 +9,7 @@ lerna-debug.log*
 
 **/node_modules/**
 **/static/**
+**/media/**
 **/migrations/**
 server/crickbet/api/migrations
 .DS_Store

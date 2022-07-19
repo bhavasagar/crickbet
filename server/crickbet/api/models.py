@@ -299,11 +299,11 @@ class ManualRechargeUPI(models.Model):
 
 class Recharge(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    proof = models.ImageField(upload_to="Images/", blank=True, null=True)
+    proof = models.ImageField(upload_to="Images/Recharges/", blank=True, null=True)
     amount = models.FloatField()
     mode = models.CharField(max_length=10)
     made_on = models.DateTimeField(auto_now=True)
-    paid = models.BooleanField(default=False)
+    paid = models.BooleanField(default=False)    
 
     def __str__(self) -> str:
         return f"Recharge - {self.user.username} - Rs.{self.amount}"
