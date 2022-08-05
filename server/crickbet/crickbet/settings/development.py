@@ -1,3 +1,4 @@
+from django import conf
 from .base import *
 from datetime import timedelta
 
@@ -35,8 +36,8 @@ if not DEBUG:
     UI_WEBSITE_URL = "https://startgain.in/"
 
 
-API_KEY = 'bPY6NbvDxFGiOoDZGhZJh1dGE8pFPrrYZFiWS4LLupHxL83zFDMgWSLQGEsy'
-ODDS_API_KEY = 'b6d22e4831de079276cd8d48b20c969f87fa949ebce1feb918e6ea70761aec5f'
+API_KEY = config('API_KEY')
+ODDS_API_KEY = config('ODDS_API_KEY')
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
