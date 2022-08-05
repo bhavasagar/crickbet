@@ -14,12 +14,15 @@ class FetchMatchesList:
     
     def __init__(self) -> None:
         self.api_key = settings.API_KEY
+        self.odds_api_key = settings.ODDS_API_KEY
         self.start_date = datetime.now().strftime("%Y-%m-%d") # "2022-05-15" # 
         end_date = datetime.now() + timedelta(days=1)
         self.end_date = end_date.strftime("%Y-%m-%d") # "2022-05-16" #
         self.teams = None
         self.headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
         self.current_matchs_url = f'https://cricket.sportmonks.com/api/v2.0/fixtures?api_token={self.api_key}&include=scoreboards&filter[starts_between]={self.start_date},{self.end_date}'
+        self.odds_matchs_url = f'https://apiv2.api-cricket.com/cricket/?method=get_events&APIkey={self.odds_api_key}&date_start={self.start_date}&date_stop={self.end_date}'
+        self.odds_url = f'https://apiv2.api-cricket.com/cricket/?method=get_odds&APIkey={self.odds_api_key}&date_start={self.start_date}&date_stop={self.end_date}'
         self.teams_url = f'https://cricket.sportmonks.com/api/v2.0/teams?api_token={self.api_key}'
         self.ball2ballscore_url = f"https://cricket.sportmonks.com/api/v2.0/fixtures?api_token={self.api_key}&include=balls,&filter[starts_between]={self.start_date},{self.end_date}"
 
@@ -30,7 +33,7 @@ class FetchMatchesList:
             resp = request(method=method, url=url, headers=headers)    
         json_resp = resp.json()
         # print(json_resp)
-        data = json_resp['data']        
+        data = json_resp.get('data') or json_resp.get('result')
         return data
 
     def set_teams(self):
@@ -134,7 +137,42 @@ class FetchMatchesList:
                         actual_score = "NO"
                     self._pass_bets([bet], actual_score)                
 
-        self._set_score(score, db_match, batting_team, item_no = item_num)        
+        self._set_score(score, db_match, batting_team, item_no = item_num)     
+
+    def _set_odd_ratio(self, ratio, odds):
+        odds = list(odds.values())
+        ratio.ratio_a = odds[0]
+        ratio.ratio_b = odds[0]
+        if  len(odds) > 0:
+            ratio.ratio_b = odds[1]
+        ratio.save()
+
+    def _set_ratios(self, db_match):
+        print("**Checking Ratios**")
+        matches = self._request("GET", self.odds_matchs_url)        
+        for match in matches:
+            # print(match.get('event_home_team'), db_match.team_a)
+            if db_match.team_a.lower() in match.get('event_home_team').lower() and db_match.team_b.lower() in match.get('event_away_team').lower():
+                print(match.get('event_key'))     
+                url = f"https://apiv2.api-cricket.com/cricket/?method=get_odds&APIkey={self.odds_api_key}&event_key={match.get('event_key')}"   
+                odds = self._request('GET', url)
+                if odds:
+                    odds = odds.get(match.get('event_key'))
+                    self._set_odd_ratio(db_match.gold, odds.get("Home/Away").get('Home'))
+                    self._set_odd_ratio(db_match.diamond, odds.get("Home/Away").get('Away'))
+                    # gold = db_match.gold
+                    # gold.ratio_a = odds.get("Home/Away").get('Home').values()[0]
+                    # gold.ratio_b = odds.get("Home/Away").get('Home').values()[0]
+                    # if  len(odds.get("Home/Away").get('Home').values()) > 0:
+                    #     gold.ratio_b = odds.get("Home/Away").get('Home').values()[1]
+                    
+                    # gold.ratio_a = odds.get("Home/Away").get('Home').values()[0]
+                    # gold.ratio_b = odds.get("Home/Away").get('Home').values()[0]
+                    # if  len(odds.get("Home/Away").get('Home').values()) > 0:
+                    #     gold.ratio_b = odds.get("Home/Away").get('Home').values()[1]                    
+                    print(odds.get("Home/Away"))
+                    return
+        return
 
     def fetch_current_matches(self):                
         data = self._request("GET", self.current_matchs_url)        
@@ -157,6 +195,7 @@ class FetchMatchesList:
                 db_match = self._create_match_from_data(match)
             else:
                 db_match = db_match.first()
+            self._set_ratios(db_match)
 
             # Blocking not required matches.
             if db_match.not_required:

@@ -35,7 +35,8 @@ if not DEBUG:
     UI_WEBSITE_URL = "https://startgain.in/"
 
 
-API_KEY = 'IVtirDdCNT3HaYBIL7IloKQ5EunDRy5qYjnyqvqh5Rrhu1zg6eXiIZette18'
+API_KEY = 'bPY6NbvDxFGiOoDZGhZJh1dGE8pFPrrYZFiWS4LLupHxL83zFDMgWSLQGEsy'
+ODDS_API_KEY = 'b6d22e4831de079276cd8d48b20c969f87fa949ebce1feb918e6ea70761aec5f'
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
