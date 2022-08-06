@@ -16,7 +16,7 @@ class FetchMatchesList:
         self.api_key = settings.API_KEY
         self.odds_api_key = settings.ODDS_API_KEY
         self.start_date = datetime.now().strftime("%Y-%m-%d") # "2022-05-15" # 
-        end_date = datetime.now() + timedelta(days=1)
+        end_date = datetime.now() + timedelta(days=3)
         self.end_date = end_date.strftime("%Y-%m-%d") # "2022-05-16" #
         self.teams = None
         self.headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
@@ -160,6 +160,11 @@ class FetchMatchesList:
                     odds = odds.get(match.get('event_key'))
                     self._set_odd_ratio(db_match.gold, odds.get("Home/Away").get('Home'))
                     self._set_odd_ratio(db_match.diamond, odds.get("Home/Away").get('Away'))
+                    toss_bet = db_match.tossbet_ratio
+                    toss_bet.ratio_a = list(odds.get("To Win the Toss").get('Home').values())[0]
+                    toss_bet.ratio_b = list(odds.get("To Win the Toss").get('Away').values())[0]
+                    toss_bet.save()
+
                     # gold = db_match.gold
                     # gold.ratio_a = odds.get("Home/Away").get('Home').values()[0]
                     # gold.ratio_b = odds.get("Home/Away").get('Home').values()[0]
@@ -172,7 +177,7 @@ class FetchMatchesList:
                     #     gold.ratio_b = odds.get("Home/Away").get('Home').values()[1]                    
                     print(odds.get("Home/Away"))
                     return
-        return
+        return 
 
     def fetch_current_matches(self):                
         data = self._request("GET", self.current_matchs_url)        
