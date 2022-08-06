@@ -281,7 +281,7 @@ class WithDrawRequest(models.Model):
     amount = models.CharField(default=False, max_length=15)
     upi_id = models.CharField(default=False, max_length=35)
     paid = models.BooleanField(default=False)  
-    made_on = models.DateTimeField()  
+    made_on = models.DateTimeField(auto_now_add=True)  
 
     def __str__(self):
         return f'{self.amount} - {self.upi_id}'
