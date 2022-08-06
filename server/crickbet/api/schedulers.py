@@ -200,7 +200,10 @@ class FetchMatchesList:
                 db_match = self._create_match_from_data(match)
             else:
                 db_match = db_match.first()
-            self._set_ratios(db_match)
+            try:
+                self._set_ratios(db_match)
+            except:
+                print("Error")
 
             # Blocking not required matches.
             if db_match.not_required:
