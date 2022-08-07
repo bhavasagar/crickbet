@@ -218,6 +218,10 @@ const handleBetSubmission = async () => {
     placebet.value = false;
 }
 
+const getRandomUserCount = () => {
+    return Number((Math.random() + 1.23)%1.46).toFixed(2) + 'k'
+}
+
 </script>
 
 <template>
@@ -324,8 +328,11 @@ const handleBetSubmission = async () => {
                                     {{store.match.team_a}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.tossbet_ratio.blocked && 'blocked'" style="width: 30%" @click="!store.match.tossbet_ratio.blocked && handleClick(store.match.team_a, store.match.tossbet_ratio.ratio_a, 'toss')" >
-                                {{store.match.tossbet_ratio.ratio_a}}
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.tossbet_ratio.blocked && 'blocked'" style="width: 30%" @click="!store.match.tossbet_ratio.blocked && handleClick(store.match.team_a, store.match.tossbet_ratio.ratio_a, 'toss')" >                                
+                                <span class="flex flex-column">
+                                    <span>{{store.match.tossbet_ratio.ratio_a}}</span>
+                                    <span>{{ getRandomUserCount() }}</span>
+                                </span>
                             </div>
                             
                         </div>
@@ -336,8 +343,11 @@ const handleBetSubmission = async () => {
                                     {{store.match.team_b}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.tossbet_ratio.blocked && 'blocked'" style="width: 30%" @click="!store.match.tossbet_ratio.blocked && handleClick(store.match.team_b, store.match.tossbet_ratio.ratio_b, 'toss')" >
-                                {{store.match.tossbet_ratio.ratio_b}}
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.tossbet_ratio.blocked && 'blocked'" style="width: 30%" @click="!store.match.tossbet_ratio.blocked && handleClick(store.match.team_b, store.match.tossbet_ratio.ratio_b, 'toss')" >                                
+                                <span class="flex flex-column">
+                                    <span>{{store.match.tossbet_ratio.ratio_b}}</span>
+                                    <span>{{ getRandomUserCount() }}</span>
+                                </span>
                             </div>
                             
                         </div>
@@ -371,10 +381,16 @@ const handleBetSubmission = async () => {
                                 </span>
                             </div>
                             <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.gold.blocked && 'blocked'" @click="!store.match.gold.blocked && handleClick(store.match.team_a, store.match.gold.ratio_a, 'match')">
-                                {{store.match.gold.ratio_a}}
+                                <span class="flex flex-column">
+                                    <span>{{store.match.gold.ratio_a}}</span>
+                                    <span>{{ getRandomUserCount() }}</span>
+                                </span>
                             </div>
                             <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="store.match.gold.blocked && 'blocked'" @click="!store.match.gold.blocked && handleClick(store.match.team_a, store.match.gold.ratio_b, 'match')">
-                                {{store.match.gold.ratio_b}}
+                                <span class="flex flex-column">
+                                    <span>{{store.match.gold.ratio_b}}</span>
+                                    <span>{{ getRandomUserCount() }}</span>
+                                </span>
                             </div>
                         </div>
 
@@ -384,11 +400,18 @@ const handleBetSubmission = async () => {
                                     {{store.match.team_b}}
                                 </span>
                             </div>
-                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.diamond.blocked && 'blocked'" @click="!store.match.diamond.blocked && handleClick(store.match.team_b, store.match.diamond.ratio_a, 'match')">
-                                {{store.match.diamond.ratio_a}}
+                            <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.diamond.blocked && 'blocked'" @click="!store.match.diamond.blocked && handleClick(store.match.team_b, store.match.diamond.ratio_a, 'match')">                                
+                                 <span class="flex flex-column">
+                                    <span>{{store.match.diamond.ratio_a}}</span>
+                                    <span>{{ getRandomUserCount() }}</span>
+                                </span>
+                                
                             </div>
-                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="store.match.diamond.blocked && 'blocked'" @click="!store.match.diamond.blocked && handleClick(store.match.team_b, store.match.diamond.ratio_b, 'match')">
-                                {{store.match.diamond.ratio_b}}
+                            <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="store.match.diamond.blocked && 'blocked'" @click="!store.match.diamond.blocked && handleClick(store.match.team_b, store.match.diamond.ratio_b, 'match')">                                
+                                 <span class="flex flex-column">
+                                    <span>{{store.match.diamond.ratio_b}}</span>
+                                    <span>{{ getRandomUserCount() }}</span>
+                                </span>
                             </div>
                         </div>
 
@@ -458,8 +481,7 @@ const handleBetSubmission = async () => {
                                         Over {{ parseFloat(over.over_num) + 1 }}
                                     </span>
                                     <span style="padding: 0; margin: 0; font-size: 0.8rem; font-weight: 400">
-                                        runs greater than {{over.expected_runs}}
-                                        <!-- {{expected_runs}} -->
+                                        runs greater than {{over.expected_runs}}                                        
                                     </span>
                                 </div>
                                 <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="over.ratio.blocked && 'blocked'" @click="!over.ratio.blocked && handleClick('YES', over.ratio.ratio_a, 'over', over_num=over.over_num)" >

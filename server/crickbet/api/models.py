@@ -103,7 +103,7 @@ import random
 class RatioModel(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE)
     ratio = models.ForeignKey(Ratio, on_delete=models.CASCADE)
-    expected_runs = models.IntegerField(default='')
+    expected_runs = models.IntegerField(default=0)
     expected_wickets = models.IntegerField(default=0)
     team = models.CharField(default='', max_length=50)
 
@@ -319,11 +319,11 @@ def userprofile_receiver(sender, instance, created, *args, **kwargs):
         account = Account.objects.create(user=instance)
 
 @receiver(post_save, sender=OverToOverRatio)        
-def userprofile_receiver(sender, instance, created, *args, **kwargs):
+def o2o_receiver(sender, instance, created, *args, **kwargs):
     if created:
         for ball_num in range(int(instance.over_num)*10+1, int(instance.over_num)*10 + 7):
             ball_num = float(ball_num/10)   
-            ratio = Ratio.objects.create(ratio_a=10,ratio_b=13)
-            if not BallToBallRatio.objects.filter(match=instance.match, ball_num=ball_num).exists():
-                BallToBallRatio.objects.create(match=instance.match, ratio=ratio, ball_num=ball_num, team=instance.team, expected_runs = str(random.randint(0,5)))
+            ratio = Ratio.objects.create(ratio_a=1.1,ratio_b=1.15)
+            if (not BallToBallRatio.objects.filter(match=instance.match, ball_num=ball_num).exists()):
+                BallToBallRatio.objects.create(match=instance.match, ratio=ratio, ball_num=ball_num, team=instance.team)
         
