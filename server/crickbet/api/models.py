@@ -324,6 +324,6 @@ def o2o_receiver(sender, instance, created, *args, **kwargs):
         for ball_num in range(int(instance.over_num)*10+1, int(instance.over_num)*10 + 7):
             ball_num = float(ball_num/10)   
             ratio = Ratio.objects.create(ratio_a=1.1,ratio_b=1.15)
-            if (not BallToBallRatio.objects.filter(match=instance.match, ball_num=ball_num).exists()):
+            if (not BallToBallRatio.objects.filter(match=instance.match, ball_num=ball_num, team=instance.team).exists()) and int(instance.over_num) < 20:
                 BallToBallRatio.objects.create(match=instance.match, ratio=ratio, ball_num=ball_num, team=instance.team)
         

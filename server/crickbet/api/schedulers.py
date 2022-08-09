@@ -16,7 +16,8 @@ class FetchMatchesList:
     def __init__(self) -> None:
         self.api_key = settings.API_KEY
         self.odds_api_key = settings.ODDS_API_KEY
-        self.start_date = datetime.now().strftime("%Y-%m-%d") # "2022-05-15" # 
+        start_date = datetime.now() - timedelta(days=2)
+        self.start_date = start_date.strftime("%Y-%m-%d") # "2022-05-15" # 
         end_date = datetime.now() + timedelta(days=2)
         self.end_date = end_date.strftime("%Y-%m-%d") # "2022-05-16" #
         self.teams = None
@@ -102,7 +103,7 @@ class FetchMatchesList:
                 print("creating o2o bets")
                 ratio = Ratio.objects.create(ratio_a=1.2, ratio_b=1.2)
                 OverToOverRatio.objects.create(match=db_match, ratio=ratio, team=batting_team, over_num=over_num+2)
-            over_previous_bets = OverToOverBet.objects.filter(match=db_match, over_num__lte=over_num, paid=False)
+            over_previous_bets = OverToOverBet.objects.filter(match=db_match, over_num__lte=over_num, paid=False, team=batting_team)
             all_b2b_data = self._request("GET",self.ball2ballscore_url)            
             # Filter current match b2b data           
             b2b_data = list(filter(lambda item: int(item["id"]) == int(db_match.match_id), all_b2b_data))
@@ -121,21 +122,27 @@ class FetchMatchesList:
                     return data[-1]['score']['runs']
         
                 for bet in over_previous_bets:                    
-                    o2o_ratio = OverToOverRatio.objects.get(match=db_match, over_num=bet.over_num)  
+                    o2o_ratio = OverToOverRatio.objects.get(match=db_match, over_num=bet.over_num, team=batting_team)  
                     expected_runs = o2o_ratio.expected_runs
                     actual_score = "YES"                    
                     if int(get_ball_score(bet.ball_num)) < expected_runs:
                         actual_score = "NO"
                     self._pass_bets([bet], actual_score)
+                    ratio = o2o_ratio.ratio
+                    ratio.blocked = True
+                    ratio.save()
                 
                 ball_num = get_ball_num(score[item_num]['overs'])                
-                ball_previous_bets = BallToBallBet.objects.filter(match=db_match, ball_num__lte=ball_num, paid=False)
+                ball_previous_bets = BallToBallBet.objects.filter(match=db_match, ball_num__lte=ball_num, paid=False, team=batting_team)
                 for bet in ball_previous_bets:
                     b2b_ratio = BallToBallRatio.objects.get(match=db_match, ball_num=score[item_num]['overs'])                    
                     # actual_score = "YES"                    
                     # if int(get_ball_score(bet.ball_num)) < expected_runs:
                     #     actual_score = "NO"
-                    self._pass_bets([bet], b2b_ratio.expected_runs)                
+                    self._pass_bets([bet], b2b_ratio.expected_runs) 
+                    ratio = b2b_ratio.ratio
+                    ratio.blocked = True
+                    ratio.save()               
 
         self._set_score(score, db_match, batting_team, item_no = item_num)     
 
@@ -169,11 +176,11 @@ class FetchMatchesList:
                 print(match.get('event_key'))     
                 url = f"https://apiv2.api-cricket.com/cricket/?method=get_odds&APIkey={self.odds_api_key}&event_key={match.get('event_key')}"   
                 odds = self._request('GET', url)
-                print(odds)
+                # print(odds)
                 if odds:
                     try:
                         odds = odds.get(match.get('event_key'))
-                        print(odds, 'Test')
+                        # print(odds, 'Test')
                         self._set_odd_ratio(db_match.gold, odds.get("Home/Away").get('Home'))
                         self._set_odd_ratio(db_match.diamond, odds.get("Home/Away").get('Away'))
                         toss_bet = db_match.tossbet_ratio
@@ -181,19 +188,8 @@ class FetchMatchesList:
                         toss_bet.ratio_b = odds.get("To Win the Toss").get('Home').get('bet365') or list(odds.get("To Win the Toss").get('Away').values())[0]
                         toss_bet.save()
                     except:
-                        pass
- 
-                    # gold = db_match.gold
-                    # gold.ratio_a = odds.get("Home/Away").get('Home').values()[0]
-                    # gold.ratio_b = odds.get("Home/Away").get('Home').values()[0]
-                    # if  len(odds.get("Home/Away").get('Home').values()) > 0:
-                    #     gold.ratio_b = odds.get("Home/Away").get('Home').values()[1]
-                    
-                    # gold.ratio_a = odds.get("Home/Away").get('Home').values()[0]
-                    # gold.ratio_b = odds.get("Home/Away").get('Home').values()[0]
-                    # if  len(odds.get("Home/Away").get('Home').values()) > 0:
-                    #     gold.ratio_b = odds.get("Home/Away").get('Home').values()[1]                    
-                    print(odds.get("Home/Away"))
+                        pass     
+                    # print(odds.get("Home/Away"))
                     return
         return 
 
@@ -204,10 +200,22 @@ class FetchMatchesList:
 
     def blockratio(self, ratio):
         ratio.blocked = True 
-        ratio.save()  
+        ratio.save()
+
+    def _block_all_bets(self, bets):
+        for bet in bets:
+            print(bet, " Blocking...")
+            self.blockratio(bet.ratio)        
+
+    def _return_bets(self, bets):
+        for bet in bets:
+            user = bet.user
+            account = user.account
+            account.balance = float(account.balance) + float(bet.amount_invested)
+            account.save() 
 
     def validate_data(self, data):
-        from .models import Match, MatchBet, BookMaker, BookMakerBet, TossBet
+        from .models import Match, MatchBet, BookMaker, BookMakerBet, TossBet, OverToOverBet, BallToBallBet, OverToOverRatio, BallToBallRatio
         # load teams if not available
         if not self.teams:
             self.set_teams()
@@ -250,6 +258,7 @@ class FetchMatchesList:
                     self._save_score(db_match, score)
                                       
             match_winner = match.get('winner_team_id')
+            print(match_winner, match)
             if match_winner:
                 match_winner = self.teams[match.get('winner_team_id')]['name']
                 db_match.match_winning_team = match_winner 
@@ -265,7 +274,18 @@ class FetchMatchesList:
                 bookmakers = BookMaker.objects.filter(match=db_match)
                 if bookmakers.exists():
                     self._pass_bets(bets, '', bookmakers)
-
+                # O2O bets
+                print(db_match, " Match")
+                o2o_bets = OverToOverBet.objects.filter(match=db_match, paid=False)
+                print(o2o_bets, "O2O bets")
+                o2o_ratios = OverToOverRatio.objects.filter(match=db_match)
+                self._return_bets(o2o_bets)
+                self._block_all_bets(o2o_ratios)
+                # B2B bets
+                b2b_bets = BallToBallBet.objects.filter(match=db_match, paid=False)
+                b2b_ratios = BallToBallRatio.objects.filter(match=db_match)
+                self._return_bets(b2b_bets)
+                self._block_all_bets(b2b_ratios)
                 #  After distributing the money to all bets.
                 db_match.not_required = True
             if match.get('status'):

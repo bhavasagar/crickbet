@@ -46,7 +46,6 @@ body {
   position: fixed;
   bottom: 1rem;
   right: 1rem;
-  background: #fff;
   padding: 0.2rem;
   border-radius: 50%;
   color: #25D366;

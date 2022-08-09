@@ -269,12 +269,14 @@ const getRandomUserCount = () => {
                         </span>
                     </div>
                 </div>
-                <div class="toss-winner flex flex-row justify-content-start ml-2 font-bold" v-if="store.match.toss_winning_team">
-                    <span class="font-bold" >Toss Winner</span> <span class="mx-2">-</span> <span class="font-bold" v-if="store.match.toss_winning_team"> {{ store.match.toss_winning_team }} </span><span class="font-bold" v-else> N/A </span>
-                </div>
-                <div class="toss-winner flex flex-row justify-content-start ml-2 font-bold" v-if="store.match.match_winning_team">
-                    <span class="font-bold" >Match Winner</span> <span class="mx-2">-</span> <span class="font-bold"  v-if="store.match.match_winning_team" > {{ store.match.match_winning_team }} </span><span class="font-bold" v-else> N/A </span>
-                </div>
+                <span class="flex flex-row justify-content-evenly">
+                    <div class="toss-winner flex flex-row justify-content-start ml-2 font-bold" v-if="store.match.toss_winning_team">
+                        <span class="font-bold" >Toss Winner</span> <span class="mx-2">-</span> <span class="font-bold" v-if="store.match.toss_winning_team"> {{ store.match.toss_winning_team }} </span><span class="font-bold" v-else> N/A </span>
+                    </div>
+                    <div class="toss-winner flex flex-row justify-content-start ml-2 font-bold" v-if="store.match.match_winning_team">
+                        <span class="font-bold" >Match Winner</span> <span class="mx-2">-</span> <span class="font-bold"  v-if="store.match.match_winning_team" > {{ store.match.match_winning_team }} </span><span class="font-bold" v-else> N/A </span>
+                    </div>
+                </span>
             </div>
             
             <Dialog class="p-dialog" header="INVEST" :key="header" v-model:visible="placebet"  >
@@ -331,7 +333,7 @@ const getRandomUserCount = () => {
                             <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.tossbet_ratio.blocked && 'blocked'" style="width: 30%" @click="!store.match.tossbet_ratio.blocked && handleClick(store.match.team_a, store.match.tossbet_ratio.ratio_a, 'toss')" >                                
                                 <span class="flex flex-column">
                                     <span>{{store.match.tossbet_ratio.ratio_a}}</span>
-                                    <span>{{ getRandomUserCount() }}</span>
+                                    <span class="user--count">{{ getRandomUserCount() }}</span>
                                 </span>
                             </div>
                             
@@ -346,7 +348,7 @@ const getRandomUserCount = () => {
                             <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.tossbet_ratio.blocked && 'blocked'" style="width: 30%" @click="!store.match.tossbet_ratio.blocked && handleClick(store.match.team_b, store.match.tossbet_ratio.ratio_b, 'toss')" >                                
                                 <span class="flex flex-column">
                                     <span>{{store.match.tossbet_ratio.ratio_b}}</span>
-                                    <span>{{ getRandomUserCount() }}</span>
+                                    <span class="user--count">{{ getRandomUserCount() }}</span>
                                 </span>
                             </div>
                             
@@ -383,13 +385,13 @@ const getRandomUserCount = () => {
                             <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.gold.blocked && 'blocked'" @click="!store.match.gold.blocked && handleClick(store.match.team_a, store.match.gold.ratio_a, 'match')">
                                 <span class="flex flex-column">
                                     <span>{{store.match.gold.ratio_a}}</span>
-                                    <span>{{ getRandomUserCount() }}</span>
+                                    <span class="user--count">{{ getRandomUserCount() }}</span>
                                 </span>
                             </div>
                             <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="store.match.gold.blocked && 'blocked'" @click="!store.match.gold.blocked && handleClick(store.match.team_a, store.match.gold.ratio_b, 'match')">
                                 <span class="flex flex-column">
                                     <span>{{store.match.gold.ratio_b}}</span>
-                                    <span>{{ getRandomUserCount() }}</span>
+                                    <span class="user--count">{{ getRandomUserCount() }}</span>
                                 </span>
                             </div>
                         </div>
@@ -403,14 +405,14 @@ const getRandomUserCount = () => {
                             <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="store.match.diamond.blocked && 'blocked'" @click="!store.match.diamond.blocked && handleClick(store.match.team_b, store.match.diamond.ratio_a, 'match')">                                
                                  <span class="flex flex-column">
                                     <span>{{store.match.diamond.ratio_a}}</span>
-                                    <span>{{ getRandomUserCount() }}</span>
+                                    <span class="user--count">{{ getRandomUserCount() }}</span>
                                 </span>
                                 
                             </div>
                             <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="store.match.diamond.blocked && 'blocked'" @click="!store.match.diamond.blocked && handleClick(store.match.team_b, store.match.diamond.ratio_b, 'match')">                                
                                  <span class="flex flex-column">
                                     <span>{{store.match.diamond.ratio_b}}</span>
-                                    <span>{{ getRandomUserCount() }}</span>
+                                    <span class="user--count">{{ getRandomUserCount() }}</span>
                                 </span>
                             </div>
                         </div>
@@ -462,33 +464,52 @@ const getRandomUserCount = () => {
                     </div>
                     <div class="details--bet">
                         <div class="flex flex-row">
-                            <div class="min-max--bet span-2-col">
+                            <div class="min-max--bet " style="flex: 4">
                                 <span class="mr-2">Min: 100</span>
                                 <span>Max: 500000</span>
                             </div>                        
-                            <div class="ratio--bet back-bet">
-                                YES
+                            <div class="ratio--bet back-bet" style="flex: 6">
+                                Runs
                             </div>
-                            <div class="ratio--bet lay-bet">
+                            <!-- <div class="ratio--bet lay-bet">
                                 NO  
-                            </div>
+                            </div> -->
                         </div>
                         
-                        <span v-for="over in store.match.over_to_over_ratios.filter(item => item.team == store.match.batting_team) " :key="over.id" >
-                            <div class="flex flex-row" v-if=" parseFloat(store.match.current_over)+1 < parseFloat(over.over_num)" >
-                                <div class="team--name py-2 px-1 span-2-col align-self-center flex flex-column">
+                        <span v-for="over in store.match.over_to_over_ratios.filter(item => item.team == store.match.batting_team)" :key="over.id" >
+                            <div class="flex flex-row" v-if="parseFloat(store.match.current_over)-1 < parseFloat(over.over_num)" >
+                                <div class="team--name py-2 px-1 align-self-center flex flex-column" style="flex: 4">
                                     <span>
                                         Over {{ parseFloat(over.over_num) + 1 }}
                                     </span>
-                                    <span style="padding: 0; margin: 0; font-size: 0.8rem; font-weight: 400">
+                                    <!-- <span style="padding: 0; margin: 0; font-size: 0.8rem; font-weight: 400">
                                         runs greater than {{over.expected_runs}}                                        
-                                    </span>
+                                    </span> -->
                                 </div>
-                                <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="over.ratio.blocked && 'blocked'" @click="!over.ratio.blocked && handleClick('YES', over.ratio.ratio_a, 'over', over_num=over.over_num)" >
+                                <!-- <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="(over.ratio.blocked || parseFloat(store.match.current_over)+1 >= parseFloat(over.over_num)) ? 'blocked' : ''" @click="!(over.ratio.blocked || parseFloat(store.match.current_over)+1 >= parseFloat(over.over_num)) ? handleClick('YES', over.ratio.ratio_a, 'over', over_num=over.over_num) : () => {}" >
                                     {{over.ratio.ratio_a}}
                                 </div>
-                                <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="over.ratio.blocked && 'blocked'" @click="!over.ratio.blocked && handleClick('NO', over.ratio.ratio_b, 'over', over_num=over.over_num)" >
+                                <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="(over.ratio.blocked || parseFloat(store.match.current_over)+1 >= parseFloat(over.over_num)) ? 'blocked' : ''" @click="!over.ratio.blocked && handleClick('NO', over.ratio.ratio_b, 'over', over_num=over.over_num)" >
                                     {{over.ratio.ratio_b}}
+                                </div> -->
+                                <div :class="(over.ratio.blocked || parseInt(store.match.current_over)+1 >= parseInt(over.over_num)) ? 'suspended' : '' " class="flex flex-row" style="flex: 6">
+                                    <!-- <span  class="flex flex-row" style="width: 100%; heigh: 100%"> -->
+                                        <div class="ratio-bet--value py-2 back-bet align-self-strech" @click=" !(over.ratio.blocked || parseInt(store.match.current_over)+1 >= parseInt(over.over_num)) ? handleClick(0, over.ratio.ratio_a, 'over', over_num=over.over_num) : () => {} " >
+                                            0
+                                        </div>
+                                        <div class="ratio-bet--value py-2 lay-bet align-self-strech" @click="!(over.ratio.blocked || parseInt(store.match.current_over)+1 >= parseInt(over.over_num)) ? handleClick(1, over.ratio.ratio_a, 'over', over_num=over.over_num) : () => {} " >
+                                            1
+                                        </div>
+                                        <div class="ratio-bet--value py-2 back-bet align-self-strech" @click=" !(over.ratio.blocked || parseInt(store.match.current_over)+1 >= parseInt(over.over_num)) ? handleClick(2, over.ratio.ratio_a, 'over', over_num=over.over_num) : () => {} " >
+                                            2
+                                        </div>
+                                        <div class="ratio-bet--value py-2 lay-bet align-self-strech" @click="!(over.ratio.blocked || parseInt(store.match.current_over)+1 >= parseInt(over.over_num)) ? handleClick(4, over.ratio.ratio_a, 'over', over_num=over.over_num) : () => {} " >
+                                            4
+                                        </div>
+                                        <div class="ratio-bet--value py-2 back-bet align-self-strech" @click=" !(over.ratio.blocked || parseInt(store.match.current_over)+1 >= parseInt(over.over_num)) ? handleClick(6, over.ratio.ratio_a, 'over', over_num=over.over_num) : () => {} " >
+                                            6
+                                        </div>
+                                    <!-- </span> -->
                                 </div>
                             </div>                    
                         </span>
@@ -502,32 +523,43 @@ const getRandomUserCount = () => {
                     </div>
                     <div class="details--bet">
                         <div class="flex flex-row">
-                            <div class="min-max--bet span-2-col">
+                            <div class="min-max--bet px-1" style="flex: 4">
                                 <span class="mr-2">Min: 50</span>
                                 <span>Max: 500000</span>
                             </div>                        
-                            <div class="ratio--bet back-bet">
-                                YES
-                            </div>
-                            <div class="ratio--bet lay-bet">
-                                NO  
+                            <div class="ratio--bet back-bet" style="flex: 6">
+                                Runs
                             </div>
                         </div>
                         <span v-for="ball_ratio in store.match.ball2ball_ratios.filter(item => item.team == store.match.batting_team)" :key="ball_ratio.id">
-                            <div class="flex flex-row" v-if=" parseFloat(store.match.current_over)+1 < parseFloat(ball_ratio.ball_num)" >
-                                <div class="team--name py-2 px-1 span-2-col align-self-center flex flex-column">
+                            <div class="flex flex-row border-300 border-bottom-1" v-if=" parseFloat(store.match.current_over)+1 < parseFloat(ball_ratio.ball_num)" >
+                                <div class="team--name py-2 px-1 align-self-center flex flex-column" style="flex: 4">
                                     <span>
                                         Ball {{parseFloat(ball_ratio.ball_num)+1}}
                                     </span>
-                                    <span style="padding: 0; margin: 0; font-size: 0.8rem; font-weight: 400">
+                                    <!-- <span style="padding: 0; margin: 0; font-size: 0.8rem; font-weight: 400">
                                         runs greater than {{ball_ratio.expected_runs}}
-                                    </span>
+                                    </span> -->
                                 </div>
-                                <div class="ratio-bet--value py-2 back-bet align-self-strech" :class="ball_ratio.ratio.blocked && 'blocked'" @click=" !ball_ratio.ratio.blocked && handleClick('YES', ball_ratio.ratio.ratio_a, 'ball', null, ball_ratio.ball_num)" >
-                                    {{ball_ratio.ratio.ratio_a}}
-                                </div>
-                                <div class="ratio-bet--value py-2 lay-bet align-self-strech" :class="ball_ratio.ratio.blocked && 'blocked'" @click="!ball_ratio.ratio.blocked && handleClick('NO', ball_ratio.ratio.ratio_b, 'ball', null, ball_ratio.ball_num)" >
-                                    {{ball_ratio.ratio.ratio_b}}
+
+                                <div :class="(ball_ratio.ratio.blocked || parseInt(store.match.current_over)+1 >= parseInt(ball_ratio.ball_num)) ? 'suspended' : '' " class="flex flex-row" style="flex: 6">
+                                    <!-- <span  class="" style="width: 100%; heigh: 100%"> -->
+                                        <div class="ratio-bet--value py-2 back-bet align-self-strech" @click=" !(ball_ratio.ratio.blocked || parseInt(store.match.current_over)+1 >= parseInt(ball_ratio.ball_num)) ? handleClick(0, ball_ratio.ratio.ratio_a, 'ball', null, ball_ratio.ball_num) : () => {} " >
+                                            0
+                                        </div>
+                                        <div class="ratio-bet--value py-2 lay-bet align-self-strech" @click="!(ball_ratio.ratio.blocked || parseInt(store.match.current_over)+1 >= parseInt(ball_ratio.ball_num)) ? handleClick(1, ball_ratio.ratio.ratio_a, 'ball', null, ball_ratio.ball_num) : () => {} " >
+                                            1
+                                        </div>
+                                        <div class="ratio-bet--value py-2 back-bet align-self-strech" @click=" !(ball_ratio.ratio.blocked || parseInt(store.match.current_over)+1 >= parseInt(ball_ratio.ball_num)) ? handleClick(2, ball_ratio.ratio.ratio_a, 'ball', null, ball_ratio.ball_num) : () => {} " >
+                                            2
+                                        </div>
+                                        <div class="ratio-bet--value py-2 lay-bet align-self-strech" @click="!(ball_ratio.ratio.blocked || parseInt(store.match.current_over)+1 >= parseInt(ball_ratio.ball_num)) ? handleClick(4, ball_ratio.ratio.ratio_a, 'ball', null, ball_ratio.ball_num) : () => {} " >
+                                            4
+                                        </div>
+                                        <div class="ratio-bet--value py-2 back-bet align-self-strech" @click=" !(ball_ratio.ratio.blocked || parseInt(store.match.current_over)+1 >= parseInt(ball_ratio.ball_num)) ? handleClick(6, ball_ratio.ratio.ratio_a, 'ball', null, ball_ratio.ball_num) : () => {} " >
+                                            6
+                                        </div>
+                                    <!-- </span> -->
                                 </div>
                             </div>
                         </span>                    
@@ -535,6 +567,8 @@ const getRandomUserCount = () => {
                 </div>                                                       
             </div>            
         </div>
+
+        <div style="margin-bottom: 5rem"></div>
     </main>  
 </template>
 
@@ -604,6 +638,9 @@ const getRandomUserCount = () => {
     text-align: center;
     /* flex-grow: 2;    */
     width: 20%;
+    height: 100%;
+    align-self: center;
+    justify-content: center;
 }
 .match--header{
     background: var(--dark-shade-1);
@@ -659,19 +696,23 @@ const getRandomUserCount = () => {
     justify-content: center;
     display: flex;
     align-items: center;
-    z-index: 100;
+    z-index: 200;
     font-weight: bold;
+    cursor: not-allowed;
 }
 .blocked::before {
     content: "BLOCKED";
-    color: #f00;
+    color: tomato;
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    padding-top: 0.25rem;
+    z-index: 201;
+    padding-top: 0.75rem;
+    font-size: 1.05rem;
     border-right: 1px solid rgba(255,255,255, 0.2);
+    font-weight: bold;
 }
 .buttons-grid{
     display: grid;
@@ -679,4 +720,42 @@ const getRandomUserCount = () => {
     grid-template-rows: repeat(3, 1fr);
     grid-gap: 0.5rem;
 }
+.user--count {
+    font-size: 0.72rem;
+    /* color: #929292 */
+    opacity: 0.75;
+    /* line-height: 1px; */
+}
+
+.suspended {
+    position: relative;
+    display: none;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 100;    
+    border-bottom: 0.1px solid #aaa;   
+    font-weight: 500;
+    font-size: 1rem;
+    letter-spacing: 1.5px; 
+    cursor: not-allowed;
+}
+
+.suspended::after {    
+    position: absolute;
+    content: "SUSPENDED";   
+    color: tomato;background: rgba(0, 0, 0, 0.5);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    align-self: center;
+    font-weight: bold;
+    line-height: 2rem;
+}
+
+.suspended:nth-child(n)::not(before) {
+    opacity: 0;
+}
+
 </style>
