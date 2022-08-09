@@ -213,6 +213,8 @@ class FetchMatchesList:
             account = user.account
             account.balance = float(account.balance) + float(bet.amount_invested)
             account.save() 
+            bet.paid = True
+            bet.save()
 
     def validate_data(self, data):
         from .models import Match, MatchBet, BookMaker, BookMakerBet, TossBet, OverToOverBet, BallToBallBet, OverToOverRatio, BallToBallRatio
